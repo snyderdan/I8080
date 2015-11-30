@@ -1,4 +1,6 @@
 
+#ifndef _I8080_CPU_
+# define _I8080_CPU_
 typedef struct I8080CPU {
 	char a, c, b, e, d, l, h, f, \
 	halt, wr, wait, /* wait = !ready */ \
@@ -85,3 +87,4 @@ extern void __cdecl setReady(I8080 *cpu, int value); // Sets ready pin to value
 static int hold = 0;
 # define setHold(value) hold=value
 # define holdAcknowledged() (hold)
+#endif
