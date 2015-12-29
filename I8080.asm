@@ -10,9 +10,9 @@ section '.code' code readable executable
 ; fasm kept barfing on declaring C calls for some reason.
 ;
 ; I declared the functions like so:
-;       proc exec c, cpu_inst, instruction:dword
-;               ; some code
-;       endp
+;	proc exec c, cpu_inst, instruction:dword
+;		; some code
+;	endp
 ;
 ; And it would complain about invalid labels or
 ; extra characters on the line on the endp or ret
@@ -83,6 +83,24 @@ step_cpu:	 ; executes one instruction from CPU
 	call process_instruction	; Process interrupt instruction
 @@:	popa				; Restore registers and return
 	ret
+
+cycles:
+	pusha				 ; store all registers
+	mov  ebx, [cpu_inst]		  ; load CPU instance into ebx
+	mov  esi, [cpu.ram_address]	  ; load ram address into esi
+	mov  dword [cpu.clk_counter],0	  ; clear clock cycles
+	push ebx			 ; push ebx back to the stack
+cycle_loop:
+	mov  eax, [cpu.clk_counter]	  ; store counter in eax
+	cmp  eax, [cpu_inst+4]		  ; compare to the number of cycles to execute
+	jge  cycle_end			  ; if greater than or equal, then stop
+	call step_cpu			  ; call step_cpu
+	jmp  cycle_loop 		  ; reloop
+cycle_end:
+	pop  ebx			 ; pop CPU instance
+	mov  eax, [esp+(4*7)]		 ; store cycles in place of eax
+	popa				 ; pop all regs
+	ret				 ; return
 
 ;proc exec C, cpu_inst, instruction:dword
 exec:	 ; Carry over from previous implementation; don't use.
@@ -315,6 +333,7 @@ section '.edata' export data readable
 	 waitw, 'waitState',\
 	 setwait, 'setReady',\
 	 setmmu, 'setMMU',\
+	 cycles, 'executeCycles',\
 	 clrmmu, 'clearMMU'
 
 section '.reloc' fixups data discardable
