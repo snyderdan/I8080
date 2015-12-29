@@ -92,7 +92,7 @@ cycles:
 	push ebx			 ; push ebx back to the stack
 cycle_loop:
 	mov  eax, [cpu.clk_counter]	  ; store counter in eax
-	cmp  eax, [cpu_inst+4]		  ; compare to the number of cycles to execute
+	cmp  eax, [cpu_inst+8]		  ; compare to the number of cycles to execute
 	jge  cycle_end			  ; if greater than or equal, then stop
 	call step_cpu			  ; call step_cpu
 	jmp  cycle_loop 		  ; reloop
