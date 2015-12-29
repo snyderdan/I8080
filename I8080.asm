@@ -98,7 +98,7 @@ cycle_loop:
 	jmp  cycle_loop 		  ; reloop
 cycle_end:
 	pop  ebx			 ; pop CPU instance
-	mov  eax, [esp+(4*7)]		 ; store cycles in place of eax
+	mov  [esp+(4*7)],eax		 ; store cycles in place of eax
 	popa				 ; pop all regs
 	ret				 ; return
 
