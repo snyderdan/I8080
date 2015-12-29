@@ -16,6 +16,7 @@ extern void __cdecl initCPU(I8080 *cpu);
 extern void __cdecl freeCPU(I8080 *cpu);
 
 extern void __cdecl stepCPU(I8080 *cpu);
+extern int  __cdecl executeCycles(I8080 *cpu, int cycleCount);
 extern void __cdecl executeInstruction(I8080 *cpu, int instruction); // Pass binary instruction (including operands)
 								// Unlike RequestInterrupt() this function can take 2 and 3 byte instructions
 extern void __cdecl setMMU(I8080 *, int (*handle)(I8080 *, int)); // set MMU handler. Receives a logical address and return a physical address
