@@ -2,13 +2,13 @@
 #ifndef _I8080_CPU_
 # define _I8080_CPU_
 typedef struct I8080CPU {
-	char a, c, b, e, d, l, h, f, \
-	halt, wr, wait, /* wait = !ready */ \
-	int_enabled, int_request, int_instruction; 
-	short pc, sp;
 	int   counter;
 	char *ram;
 	void *mmu, *ioports[256];
+	short pc, sp;
+	char a, c, b, e, d, l, h, f, \
+	halt, wr, wait, /* wait = !ready */ \
+	int_enabled, int_request, int_instruction;
 } __attribute__((packed)) I8080;
 
 extern I8080 * __cdecl newCPU();

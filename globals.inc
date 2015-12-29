@@ -9,6 +9,14 @@
 ;********************************************************************
 
 struct I8080CPU    ; structure for I8080 object
+    ; start with aligned portions
+    clk_counter dd  ?	; clocks passed
+    ram_address dd  ?	; base RAM address
+    mem_mngr	dd  ?	; pointer to MMU
+    IOPorts	dd  256 dup ?	 ; Internal I/O jump table
+    reg_pc  dw	?	; program counter
+    reg_sp  dw	?	; stack pointer
+    ; registers
     reg_a   db	?
     reg_c   db	?
     reg_b   db	?
@@ -23,12 +31,6 @@ struct I8080CPU    ; structure for I8080 object
     int_enabled db  ?	; flag set if interrupts are enabled
     int_request db  ?	; flag set when interrupt is requested
     int_instruc db  ?	; instruction passed from interrupt
-    reg_pc  dw	?	; program counter
-    reg_sp  dw	?	; stack pointer
-    clk_counter dd  ?	; clocks passed
-    ram_address dd  ?	; base RAM address
-    mem_mngr	dd  ?	; pointer to MMU
-    IOPorts	dd  256 dup ?	 ; Internal I/O jump table
 ends
 
 ; CPU critical information
