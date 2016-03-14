@@ -1,10 +1,10 @@
-format PE DLL
+format ELF
 
-include 'win32a.inc'
+include 'struct.inc'
 include 'globals.inc'
 include 'proc_instruction.inc'
 
-section '.code' code readable executable
+section '.text' executable
 ;************************************************
 ; had to define all the args stuff myself as
 ; fasm kept barfing on declaring C calls for some reason.
@@ -18,17 +18,43 @@ section '.code' code readable executable
 ; extra characters on the line on the endp or ret
 ;************************************************
 
+	public setIOPort
+	public freeIOPort
+	public requestInterrupt
+	public setMemory
+	public stepCPU
+	public resetCPU
+	public getMemory
+	public executeInstruction
+	public interruptEnabled
+	public getIOState
+	public getAccumulator
+	public setAccumulator
+	public newCPU
+	public initCPU
+	public freeCPU
+	public waitState
+	public setReady
+	public setMMU
+	public executeCycles
+	public clearMMU
+	
+	extrn malloc
+	extrn free
+	extrn clock
+	extrn printf
+
 cpu_inst equ esp+4+(8*4)   ; the addition of 4 is accounting for the
 			   ; return address while the (8*4) is accounting for the pusha instruction
 
-newcpu:   ; Creates new CPU object
+newCPU:   ; Creates new CPU object
     push dword sizeof.I8080CPU
-    call [malloc]     ; Allocates memory
+    call dword [malloc]     ; Allocates memory
     add esp, 4
     ret
 
 
-initcpu:       ; Initializes CPU
+initCPU:       ; Initializes CPU
     pusha		 ; store registers onto stack
     mov ebx, [cpu_inst]  ; get address of cpu instance
     xor eax, eax	 ; zero eax
@@ -54,14 +80,14 @@ initcpu:       ; Initializes CPU
 
 
 
-freecpu:     ; Frees CPU instance on stack. Just wraps free()
+freeCPU:     ; Frees CPU instance on stack. Just wraps free()
     push dword [esp+4]
-    call [free]
+    call dword [free]
     add esp, 4
     ret
 
 
-step_cpu:	 ; executes one instruction from CPU
+stepCPU:	 ; executes one instruction from CPU
 	pusha			   ; store all registers
 	mov ebx, [cpu_inst]	   ; Loads CPU instance into ebx
 	mov esi, [cpu.ram_address] ; load ram address into esi
@@ -84,7 +110,7 @@ step_cpu:	 ; executes one instruction from CPU
 @@:	popa				; Restore registers and return
 	ret
 
-cycles:
+executeCycles:
 	pusha				 ; store all registers
 	mov  ebx, [cpu_inst]		  ; load CPU instance into ebx
 	mov  esi, [cpu.ram_address]	  ; load ram address into esi
@@ -94,7 +120,7 @@ cycle_loop:
 	mov  eax, [cpu.clk_counter]	  ; store counter in eax
 	cmp  eax, [cpu_inst+8]		  ; compare to the number of cycles to execute
 	jge  cycle_end			  ; if greater than or equal, then stop
-	call step_cpu			  ; call step_cpu
+	call stepCPU			  ; call step_cpu
 	jmp  cycle_loop 		  ; reloop
 cycle_end:
 	pop  ebx			 ; pop CPU instance
@@ -103,7 +129,7 @@ cycle_end:
 	ret				 ; return
 
 ;proc exec C, cpu_inst, instruction:dword
-exec:	 ; Carry over from previous implementation; don't use.
+executeInstruction:	 ; Carry over from previous implementation; don't use.
 
     instruction equ cpu_inst + 4
 
@@ -121,7 +147,7 @@ exec:	 ; Carry over from previous implementation; don't use.
 
 
 ;proc setramaddress cpu_inst, ramaddr:dword
-setramaddress:	 ; Sets base RAM address of CPU. Practically obsolete since implementing MMU functionality
+setMemory:	 ; Sets base RAM address of CPU. Practically obsolete since implementing MMU functionality
 
     ramaddr  equ esp+12   ;
 
@@ -132,14 +158,14 @@ setramaddress:	 ; Sets base RAM address of CPU. Practically obsolete since imple
     pop ebx
     ret
 
-getramaddress:		  ; Returns base RAM address
+getMemory:		  ; Returns base RAM address
     push ebx
     mov ebx, [esp+8]
     mov eax, [cpu.ram_address]
     pop ebx
     ret
 
-setmmu: 		      ; Sets MMU handler
+setMMU: 		      ; Sets MMU handler
     push ebx		      ; store ebx
     mov ebx, [esp+8]	      ; mov CPU instance to ebx
     mov eax, [esp+12]	      ; move pointer to MMU function to eax
@@ -147,7 +173,7 @@ setmmu: 		      ; Sets MMU handler
     pop ebx		      ; restore ebx and return
     ret
 
-clrmmu:       ; simply sets the memory manager back to default
+clearMMU:       ; simply sets the memory manager back to default
     push ebx
     mov ebx, [esp+8]
     mov [cpu.mem_mngr], default_mmu
@@ -156,7 +182,7 @@ clrmmu:       ; simply sets the memory manager back to default
 
 
 ;proc setport c cpu_inst:dword, portnumber:dword, handle:dword
-setport:       ; Assign an I/O function handle to an I/O port
+setIOPort:       ; Assign an I/O function handle to an I/O port
 
     portnumber equ cpu_inst+4	  ; port assigning to
     handle     equ cpu_inst+8	  ; function handle
@@ -165,9 +191,9 @@ setport:       ; Assign an I/O function handle to an I/O port
     cmp dword [portnumber], 255   ; ensure port number is under 255
     jle @f
     push dword error1		  ; If not, print an error. Not sure why this is the only error I check for.
-    call [printf]
+    call dword [printf]
     mov [esp], dword 1
-    call [exitprocess]		  ; And then just leave.
+    call exitprocess		  ; And then just leave.
 @@: mov  eax, [portnumber]	  ; Move the actual port number into eax
     mov  ebx, [cpu_inst]	  ; Move cpu instance into ebx
     mov  ecx, [handle]		  ; move handle into ecx
@@ -180,7 +206,7 @@ setport:       ; Assign an I/O function handle to an I/O port
 
 
 ;proc freeport c cpu_inst:dword, portnumber:dword
-freeport:
+freeIOPort:
 
     portnumber equ cpu_inst+4
 
@@ -188,10 +214,10 @@ freeport:
     cmp dword [portnumber], 255
     jle @f
     push dword error1
-    call [printf]
+    call dword [printf]
     add esp, 4
     push dword 1
-    call [exitprocess]
+    call exitprocess
 @@: mov  eax, [portnumber]
     mov  ebx, [cpu_inst]
     imul eax, 4
@@ -203,7 +229,7 @@ freeport:
 
 
 ;proc requestint C cpu_inst, intaddress:WORD
-requestint:
+requestInterrupt:
 
     intaddress equ cpu_inst+4
 
@@ -217,7 +243,7 @@ requestint:
 
 
 
-reset_cpu:
+resetCPU:
 	push ebx
 	mov ebx, [esp+8]
 	xor ax, ax
@@ -230,7 +256,7 @@ reset_cpu:
 
 
 
-areintsenabled:
+interruptEnabled:
     push ebx
     mov ebx, [esp+8]
     movzx eax,byte [cpu.int_enabled]
@@ -239,7 +265,7 @@ areintsenabled:
 
 
 
-writewire:
+getIOState:
     push ebx
     mov ebx, [esp+8]
     movzx eax, byte [cpu.wr]
@@ -247,7 +273,7 @@ writewire:
     ret
 
 
-waitw:
+waitState:
     push ebx
     mov ebx, [esp+8]
     xor eax, eax
@@ -257,7 +283,7 @@ waitw:
     ret
 
 
-setwait:
+setReady:
     push ebx
     mov ebx, [esp+8]
     mov al, [esp+16]
@@ -267,7 +293,7 @@ setwait:
     ret
 
 
-getrega:
+getAccumulator:
     push ebx
     mov ebx, [esp+8]
     movzx eax, a
@@ -280,7 +306,7 @@ getrega:
 
 
 ;proc setrega C, value:dword
-setrega:
+setAccumulator:
 
     value    equ esp+12
 
@@ -294,46 +320,13 @@ setrega:
     mov eax, -1
 @@: pop ebx
     ret
+    
+    
+exitprocess:
+	mov     eax, 60         ; exit
+    xor     edi, edi        ; return code
+    syscall 
 
 
-section '.data' data readable writeable
+section '.data' writeable
   error1 db 'IO Port must be in the range of (0x00-0xFF)',10,0
-
-section '.idata' import data readable writeable
-
-  library kernel, 'kernel32.dll',\
-	  msvcrt, 'msvcrt.dll',\
-	  delay, 'delay.dll'
-
-  import msvcrt,printf,'printf',\
-		malloc,'malloc',\
-		free,'free',\
-		clock,'clock'
-
-  import kernel,exitprocess, 'ExitProcess'
-
-section '.edata' export data readable
-
-  export 'I8080.DLL',\
-	 setport,'setIOPort', \
-	 freeport,'freeIOPort',\
-	 requestint, 'requestInterrupt',\
-	 setramaddress, 'setMemory',\
-	 step_cpu, 'stepCPU',\
-	 reset_cpu, 'resetCPU',\
-	 getramaddress, 'getMemory',\
-	 exec, 'executeInstruction',\
-	 areintsenabled, 'interruptEnabled',\
-	 writewire, 'getIOState',\
-	 getrega, 'getAccumulator',\
-	 setrega, 'setAccumulator',\
-	 newcpu, 'newCPU',\
-	 initcpu, 'initCPU',\
-	 freecpu, 'freeCPU',\
-	 waitw, 'waitState',\
-	 setwait, 'setReady',\
-	 setmmu, 'setMMU',\
-	 cycles, 'executeCycles',\
-	 clrmmu, 'clearMMU'
-
-section '.reloc' fixups data discardable
