@@ -1,6 +1,6 @@
 
 #ifndef _I8080_CPU_
-# define _I8080_CPU_
+#  define _I8080_CPU_
 typedef struct I8080CPU {
 	int   counter;
 	char *ram;
@@ -10,6 +10,10 @@ typedef struct I8080CPU {
 	halt, wr, wait, /* wait = !ready */ \
 	int_enabled, int_request, int_instruction;
 } __attribute__((packed)) I8080;
+
+#  ifdef OS_UNIX
+#    define __cdecl
+#   endif
 
 extern I8080 * __cdecl newCPU();
 extern void __cdecl initCPU(I8080 *cpu);
@@ -48,24 +52,24 @@ extern void __cdecl setIOPort(I8080 *cpu, int portno, void (*handle)(I8080 *inst
  * The handle should be a void function that takes a pointer to an I8080 as an argument
  */
 extern int __cdecl getIOState(I8080 *); // returns 1 if in output mode or 0 if in input mode
-# define INPUT      0
-# define OUTPUT     1
+#  define INPUT      0
+#  define OUTPUT     1
 // Numerous synonyms
-# define writeWire  getIOState
-# define isInput    !writeWire
-# define isOutput   writeWire
-# define inputToCPU isInput
-# define outputFromCPU    isOutput
-# define inputToDevice    isOutput
-# define outputFromDevice isInput
+#  define writeWire  getIOState
+#  define isInput    !writeWire
+#  define isOutput   writeWire
+#  define inputToCPU isInput
+#  define outputFromCPU    isOutput
+#  define inputToDevice    isOutput
+#  define outputFromDevice isInput
 
 extern int __cdecl getAccumulator(I8080 *cpu); // returns -1 if not WriteWire() else the current
 						// value in register A
 extern int __cdecl setAccumulator(I8080 *cpu, int); // returns -1 if WriteWire() else the value
 						// that register A was set to (only the lowest byte)
 
-# define INVALID_ACCUMULATOR -1
-# define isValidAccumulator(acc) (acc == INVALID_ACCUMULATOR) ? 0 : 1 // Tests to see if
+#  define INVALID_ACCUMULATOR -1
+#  define isValidAccumulator(acc) (acc == INVALID_ACCUMULATOR) ? 0 : 1 // Tests to see if
 								// the 'acc' indicates a successful get/set of the accumulator
 								// if 0 then the incorrect I/O mode was attempted
 
@@ -75,9 +79,9 @@ extern int __cdecl interruptEnabled(I8080 *cpu);    // Returns 1 if IR bit is Tr
 extern void __cdecl resetCPU(I8080 *cpu);    // clears PC and sets IR bit to False; all other registers remain the same
 extern int __cdecl waitState(I8080 *cpu);    // returns 1 if HLT or Ready pin == 0 else 0
 extern void __cdecl setReady(I8080 *cpu, int value); // Sets ready pin to value
-# define READY   1
-# define EXECUTE 1
-# define WAIT    0
+#  define READY   1
+#  define EXECUTE 1
+#  define WAIT    0
 
 /** 
  * The following strictly exist to provide more accurate emulation of 
@@ -86,6 +90,6 @@ extern void __cdecl setReady(I8080 *cpu, int value); // Sets ready pin to value
  * Ready() function.
  */
 static int hold = 0;
-# define setHold(value) hold=value
-# define holdAcknowledged() (hold)
+#  define setHold(value) hold=value
+#  define holdAcknowledged() (hold)
 #endif
