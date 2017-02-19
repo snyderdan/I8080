@@ -45,8 +45,9 @@ section '.text' executable
 	extrn printf
 
 newCPU:   ; Creates new CPU object
-    push qword sizeof.I8080CPU
-    call qword [malloc]     ; Allocates memory
+	mov rax, sizeof.I8080CPU
+    push rax
+    call malloc     ; Allocates memory
     add esp, 8
     ret
 
@@ -83,7 +84,7 @@ initCPU:       				; Initializes CPU
 
 freeCPU:     ; Frees CPU instance on stack. Just wraps free()
     push qword [rsp+8]
-    call qword [free]
+    call free
     add esp, 8
     ret
 
@@ -178,7 +179,7 @@ setIOPort:       ; Assign an I/O function handle to an I/O port
     cmp dword [rsp+16], 255   ; ensure port number is under 255
     jle @f
     push qword error1		  ; If not, print an error. Not sure why this is the only error I check for.
-    call qword [printf]
+    call printf
     add  rsp, 8
     call exitprocess		  ; And then just leave.
 @@: mov  eax, [rsp+16]	      ; Move the actual port number into eax
