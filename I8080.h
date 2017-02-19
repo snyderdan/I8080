@@ -1,6 +1,9 @@
 
 #ifndef _I8080_CPU_
 #  define _I8080_CPU_
+
+#  include <stdint.h>
+
 typedef struct I8080CPU {
 	int   counter;
 	char *ram;
@@ -23,7 +26,7 @@ extern void __cdecl stepCPU(I8080 *cpu);
 extern int  __cdecl executeCycles(I8080 *cpu, int cycleCount);
 extern void __cdecl executeInstruction(I8080 *cpu, int instruction); // Pass binary instruction (including operands)
 								// Unlike RequestInterrupt() this function can take 2 and 3 byte instructions
-extern void __cdecl setMMU(I8080 *, int (*handle)(I8080 *, int)); // set MMU handler. Receives a logical address and return a physical address
+extern void __cdecl setMMU(I8080 *, int64_t (*handle)(I8080 *, int)); // set MMU handler. Receives a logical address and return a physical address
 extern void __cdecl clearMMU(I8080 *);
 extern void __cdecl *getMemory(I8080 *cpu);            // return address of RAM
 extern void __cdecl setMemory(I8080 *cpu, void *memory); // Set address of RAM 

@@ -47,7 +47,7 @@ section '.text' executable
 newCPU:   ; Creates new CPU object
     push qword sizeof.I8080CPU
     call qword [malloc]     ; Allocates memory
-    add esp, 4
+    add esp, 8
     ret
 
 
