@@ -1,6 +1,7 @@
 process_instruction:
-	imul rax,  8	  ; scale from 1 to 8 bytes
-	add  eax,  dword .instr_jmp_table ; adds offset of instr_jmp_table
+	imul rax, 8	  ; scale from 1 to 8 bytes
+	mov  rdx, qword .instr_jmp_table
+	add  rax, rdx
 	jmp  qword [rax]   ; jumps to address pointed to by eax
 
 	.instr_jmp_table:
@@ -1701,11 +1702,10 @@ process_instruction:
 		get_byte
 		movzx rax, al
 		imul rax, 8
-		push rbx
-		mov byte [cpu.wr], 1
+		mov  rdi, rbx
+		mov  byte [cpu.wr], 1
 		call qword [rax+cpu.IOPorts]
 		mov  byte [cpu.wr],0
-		add rsp, 8
 		ret
 		
 	.instr_0xd4: ; cnc word
@@ -1769,9 +1769,8 @@ process_instruction:
 		get_byte
 		movzx rax, al
 		imul rax, 8
-		push rbx
+		mov  rdi, rbx
 		call qword [rax+cpu.IOPorts]
-		add rsp, 8
 		ret
 		
 	.instr_0xdc: ; cc word

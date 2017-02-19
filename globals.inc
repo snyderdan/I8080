@@ -3,8 +3,6 @@
 ; General notes on register usage 
 ;
 ; rbx contains the pointer to the current in-use CPU instance
-; rsi contains the pointer to the main memory for that CPU
-; rdi is used for indexing into main memory (PC and HL)
 ;
 ;********************************************************************
 
@@ -65,7 +63,7 @@ null_handle:
     ret
 
 default_mmu:
-    mov eax, [esp+8]
+    mov rax, rsi
     ret
 
 macro lflags {	     ; load flags from cpu instance
@@ -79,89 +77,77 @@ macro sflags {	     ; store flags in cpu instance
 }
 
 macro get_byte {	 ; Get next byte pointed to by PC and increment PC
-      movzx rdi, pc
-      push rdi
-      push rbx
+      movzx rsi, pc
+      mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rsp, 16
-      mov  al, [rsi+rax]
+      add  rax, [cpu.ram_address]
+      mov  al, [rax]
       inc  pc
 }
 
 macro get_word {	; Get next word pointed to by PC and increment PC
-      movzx rdi, pc
-      push rdi
-      push rbx
+      movzx rsi, pc
+      mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rsp, 16
-      mov  ax, [rsi+rax]
+      add  rax, [cpu.ram_address]
+      mov  ax, [rax]
       add  pc, 2
 }
 
 macro read_byte src {	; Read byte located at src
-      movzx rdi, src
-      push rdi
-      push rbx
+      movzx rsi, src
+      mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rsp, 16
-      mov  al, [rsi+rax]
+      add  rax, [cpu.ram_address]
+      mov  al, [rax]
 }
 
 macro read_word src {	; read word located at src
-      movzx rdi, src
-      push rdi
-      push rbx
+      movzx rsi, src
+      mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rsp, 16
-      mov  ax, [rsi+rax]
+      add  rax, [cpu.ram_address]
+      mov  ax, [rax]
 }
 
 macro write_byte dest {
-      movzx rdi, dest
-      push rcx
-      push rdi
-      push rbx
+      movzx rsi, dest
+      mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rsp, 16
-      pop  rcx
-      mov  byte [rsi+rax], cl
+      add  rax, [cpu.ram_address]
+      mov  [rax], cl
 }
 
 macro write_word dest {
-      movzx rdi, dest
-      push rcx
-      push rdi
-      push rbx
+      movzx rsi, dest
+      mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rsp, 16
-      pop  rcx
-      mov  word [rsi+rax], cx
+      add  rax, [cpu.ram_address]
+      mov  [rax], cx
 }
 
 macro push_cx {
       sub  sp, 2
-      movzx rdi, sp
-      push rcx
-      push rdi
-      push rbx
+      movzx rsi, sp
+      mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rsp, 16
-      pop  rcx
-      mov  word [rsi+rax], cx
+      add  rax, [cpu.ram_address]
+      mov  [rax], cx
 }
 
 macro pop_cx {
-      add sp, 2
-      movzx rdi, sp
-      push rdi
-      push rbx
+      add  sp, 2
+      movzx rsi, sp
+      mov  rdi, rbx
+      mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
-      add  rsp, 16
-      mov cx, word [rsi+rax-2]
+      mov  byte [cpu.wr],0
+      add  rax, [cpu.ram_address]
+      mov  cx, [rax]
 }

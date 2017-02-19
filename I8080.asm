@@ -25,7 +25,6 @@ section '.text' executable
 	public stepCPU
 	public resetCPU
 	public getMemory
-	public executeInstruction
 	public interruptEnabled
 	public getIOState
 	public getAccumulator
@@ -45,22 +44,18 @@ section '.text' executable
 	extrn printf
 
 newCPU:   ; Creates new CPU object
-	mov rax, sizeof.I8080CPU
-    push rax
+	mov rdi, sizeof.I8080CPU
     call malloc     ; Allocates memory
-    add esp, 8
     ret
 
 
 initCPU:       				; Initializes CPU
-    push rax 				; store registers onto stack
     push rbx
-    push rcx
-    mov rbx, [rsp+8+8*3]  	; get address of cpu instance
-    xor eax, eax	 		; zero eax
-    mov ecx, sizeof.I8080CPU ; Load size of object minus I/O jump table
+    mov rbx, rdi          	; get address of cpu instance
+    xor rax, rax	 		; zero eax
+    mov rcx, sizeof.I8080CPU ; Load size of object minus I/O jump table
 @@:
-    mov [ebx+ecx-1], al		; store zero at that location
+    mov [rbx+rcx-1], al		; store zero at that location
     loop @b		 			; loop while ecx > 0
 
     mov rax, default_mmu     ; Set the default MMU as the memory manager (returns the same address)
@@ -74,23 +69,19 @@ initCPU:       				; Initializes CPU
     mov [rbx], rax	     ; store null handle pointer in I/O table position
     add rbx, 8		     ; Go to next I/O pointer
     loop @b		     ; Loop while cl > 0
-
-    pop rcx
     pop rbx
-    pop rax
     ret
 
 
 
 freeCPU:     ; Frees CPU instance on stack. Just wraps free()
-    push qword [rsp+8]
     call free
-    add esp, 8
     ret
 
 
 stepCPU:	 ; executes one instruction from CPU
-	mov rbx, [rsp+8]	   ; Loads CPU instance into ebx
+    push rbx
+	mov rbx, rdi       	   ; Loads CPU instance into ebx
 	mov rsi, [cpu.ram_address] ; load ram address into esi
 	mov al, [cpu.halt]	   ; Move halt flag into al
 	or  al, [cpu.wait]	   ; Move wait flag into al
@@ -108,126 +99,114 @@ stepCPU:	 ; executes one instruction from CPU
 	mov [cpu.wait], byte 0		; Clear any wait or halt status
 	mov [cpu.halt], byte 0
 	call process_instruction	; Process interrupt instruction
-@@:	ret
+@@:	pop rbx
+    ret
+
+
 
 executeCycles:
-	mov  rbx, [rsp+8]		  	; load CPU instance into ebx
+    push rbx
+	mov  rbx, rdi      		  	; load CPU instance into ebx
+    mov  ecx, esi               ; store cycle count in ecx
 	mov  rsi, [cpu.ram_address]	  ; load ram address into esi
 	mov  dword [cpu.clk_counter],0	  ; clear clock cycles
-	push rbx			 ; push ebx back to the stack
 cycle_loop:
 	mov  eax, [cpu.clk_counter]	  ; store counter in eax
-	cmp  eax, [rsp+16]		  ; compare to the number of cycles to execute
+	cmp  eax, ecx		      ; compare to the number of cycles to execute
 	jge  cycle_end			  ; if greater than or equal, then stop
 	call stepCPU			  ; call step_cpu
 	jmp  cycle_loop 		  ; reloop
 cycle_end:
-	pop  rbx			 ; pop CPU instance
-	ret				 ; return
+    pop rbx
+	ret				          ; return
 
-;proc executeInstruction C, cpu_inst, instruction:dword
-executeInstruction:	 ; Carry over from previous implementation; don't use.
-
-    mov rbx, [rsp+8]
-    mov eax, [rsp+16]
-    mov rsi, [cpu.ram_address]
-    mov [rsi-4], eax
-    mov pc, -3
-    movzx eax, al
-    call process_instruction
-    ret
 
 
 
 ;proc setramaddress cpu_inst, ramaddr:dword
 setMemory:	 ; Sets base RAM address of CPU. Practically obsolete since implementing MMU functionality
-
-    ramaddr  equ rsp+12   ;
-
     push rbx		  ; Store rbx
-    mov rbx, [rsp+16]	  ; load it with CPU instance
-    mov rax, [ramaddr]	  ; load rax with ram address
-    mov [cpu.ram_address], rax	  ; set ram address and return
+    mov rbx, rdi	  ; load it with CPU instance
+    mov [cpu.ram_address], rsi	  ; set ram address and return
     pop rbx
     ret
 
+
 getMemory:		  ; Returns base RAM address
     push rbx
-    mov rbx, [rsp+16]
+    mov rbx, rdi
     mov rax, [cpu.ram_address]
     pop rbx
     ret
 
 setMMU: 		      ; Sets MMU handler
     push rbx		      ; store ebx
-    mov rbx, [rsp+16]	      ; mov CPU instance to rbx
-    mov rax, [rsp+24]	      ; move pointer to MMU function to rax
-    mov [cpu.mem_mngr], rax   ; set handle
+    mov rbx, rdi	      ; mov CPU instance to rbx
+    mov [cpu.mem_mngr], rsi   ; set handle
     pop rbx		      ; restore ebx and return
     ret
 
 clearMMU:       ; simply sets the memory manager back to default
     push rbx
-    mov rbx, [rsp+16]
+    mov rbx, rdi
     mov [cpu.mem_mngr], default_mmu
     pop rbx
     ret
 
 
 ;proc setport c cpu_inst:dword, portnumber:dword, handle:dword
-setIOPort:       ; Assign an I/O function handle to an I/O port
-    cmp dword [rsp+16], 255   ; ensure port number is under 255
-    jle @f
-    push qword error1		  ; If not, print an error. Not sure why this is the only error I check for.
+setIOPort:          ; Assign an I/O function handle to an I/O port
+    push rbx
+    cmp  esi, 255    ; ensure port number is under 255
+    jle  @f
+    push qword error1		; If not, print an error. Not sure why this is the only error I check for.
     call printf
     add  rsp, 8
-    call exitprocess		  ; And then just leave.
-@@: mov  eax, [rsp+16]	      ; Move the actual port number into eax
-	xor  rbx, rbx
-	mov  ebx, eax
-	mov  rax, rbx
-    mov  rbx, [rsp+8]  		  ; Move cpu instance into rbx
-    mov  rcx, [rsp+24]		  ; move handle into rcx
+    call exitprocess		; And then just leave.
+@@: xor  rax, rax
+    mov  eax, esi           ; move port number to eax
+    mov  rbx, rdi     		; Move cpu instance into rbx
     imul rax, 8 		  ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
-    lea  rax, [rax+cpu.IOPorts]   ; Load address of I/O port into rax. I just wanted to use the LEA instruction.
-    mov [rax], rcx		  ; store pointer to function
+    mov  [rax+cpu.IOPorts], rdx		  ; store pointer to function
+    pop  rbx
     ret
 
 
 
 ;proc freeport c cpu_inst:dword, portnumber:dword
 freeIOPort:
-    cmp dword [rsp+16], 255
-    jle @f
+    push rbx
+    cmp  esi, 255
+    jle  @f
     push qword error1
-    call qword [printf]
+    call printf
     add  rsp, 8
     call exitprocess
-@@: mov  eax, [rsp+16]
-	xor  rbx, rbx
-	mov  ebx, eax
-	mov  rax, rbx
-    mov  rbx, [rsp+8]
-    imul rax, 8
-    lea  rax, [rax+cpu.IOPorts]
-    mov [rax], dword 0
-    mov [rax+4], dword 0
+@@: xor  rax, rax
+    mov  eax, esi           ; move port number to eax
+    mov  rbx, rdi           ; Move cpu instance into rbx
+    imul rax, 8           ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
+    mov  rdx, null_handle
+    mov  [rax+cpu.IOPorts], rdx
+    pop  rbx
     ret
 
 
 
 requestInterrupt:
-    mov  rbx, [rsp+8]
+    push rbx
+    mov  rbx, rdi
     mov  al, byte [rsp+16]
     mov  [cpu.int_instruc], al
     mov  [cpu.int_request], byte 1
+    pop  rbx
     ret
 
 
 
 resetCPU:
 	push rbx
-	mov rbx, [rsp+16]
+	mov rbx, rdi
 	xor ax, ax
 	mov [cpu.reg_pc], ax
 	mov [cpu.int_enabled], al
@@ -240,7 +219,7 @@ resetCPU:
 
 interruptEnabled:
     push rbx
-    mov rbx, [rsp+16]
+    mov rbx, rdi
     movzx rax,byte [cpu.int_enabled]
     pop rbx
     ret
@@ -249,7 +228,7 @@ interruptEnabled:
 
 getIOState:
     push rbx
-    mov  rbx, [rsp+16]
+    mov  rbx, rdi
     movzx rax, byte [cpu.wr]
     pop  rbx
     ret
@@ -257,7 +236,7 @@ getIOState:
 
 waitState:
     push rbx
-    mov  rbx, [rsp+16]
+    mov  rbx, rdi
     xor  rax, rax
     mov  al, [cpu.halt]
     or	 al, [cpu.wait]
@@ -267,8 +246,8 @@ waitState:
 
 setReady:
     push rbx
-    mov  rbx, [rsp+16]
-    mov  al, [rsp+24]
+    mov  rbx, rdi
+    mov  ax, si
     xor  al, 1	   ; invert the value
     mov  [cpu.wait], al
     pop  rbx
@@ -277,7 +256,7 @@ setReady:
 
 getAccumulator:
     push rbx
-    mov  rbx, [rsp+16]
+    mov  rbx, rdi
     movzx rax, a
     cmp  byte [cpu.wr], 1
     jz   @f
@@ -290,10 +269,10 @@ getAccumulator:
 ;proc setrega C, value:dword
 setAccumulator:
 	push rbx
-    mov  rbx, [rsp+16]
-    mov  al, byte [rsp+24]
+    mov  rbx, rdi
+    mov  ax, si
     mov  a, al
-    movzx rax, al
+    movzx rax, si
     cmp  byte [cpu.wr], 1
     jz   @f
     mov  rax, -1
