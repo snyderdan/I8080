@@ -2,18 +2,18 @@
 ;********************************************************************
 ; General notes on register usage 
 ;
-; ebx contains the pointer to the current in-use CPU instance
-; esi contains the pointer to the main memory for that CPU
-; edi is used for indexing into main memory (PC and HL)
+; rbx contains the pointer to the current in-use CPU instance
+; rsi contains the pointer to the main memory for that CPU
+; rdi is used for indexing into main memory (PC and HL)
 ;
 ;********************************************************************
 
 struct I8080CPU    ; structure for I8080 object
     ; start with aligned portions
     clk_counter dd  ?	; clocks passed
-    ram_address dd  ?	; base RAM address
-    mem_mngr	dd  ?	; pointer to MMU
-    IOPorts	dd  256 dup ?	 ; Internal I/O jump table
+    ram_address dq  ?	; base RAM address
+    mem_mngr	dq  ?	; pointer to MMU
+    IOPorts	dq  256 dup ?	 ; Internal I/O jump table
     reg_pc  dw	?	; program counter
     reg_sp  dw	?	; stack pointer
     ; registers
@@ -35,7 +35,7 @@ ends
 
 ; CPU critical information
 
-virtual at ebx	   ; set up a virtual object at ebx
+virtual at rbx	   ; set up a virtual object at ebx
     cpu I8080CPU   ; anytime we reference cpu, it will use ebx as the base address, and add an offset based on what attribute is being accessed.
 end virtual
 
@@ -79,89 +79,89 @@ macro sflags {	     ; store flags in cpu instance
 }
 
 macro get_byte {	 ; Get next byte pointed to by PC and increment PC
-      movzx edi, pc
-      push edi
-      push ebx
-      call dword [cpu.mem_mngr]
-      add  esp, 8
-      mov  al, [esi+eax]
-      inc pc
+      movzx rdi, pc
+      push rdi
+      push rbx
+      call qword [cpu.mem_mngr]
+      add  rsp, 16
+      mov  al, [rsi+rax]
+      inc  pc
 }
 
 macro get_word {	; Get next word pointed to by PC and increment PC
-      movzx edi, pc
-      push edi
-      push ebx
-      call dword [cpu.mem_mngr]
-      add  esp, 8
-      mov  ax, [esi+eax]
+      movzx rdi, pc
+      push rdi
+      push rbx
+      call qword [cpu.mem_mngr]
+      add  rsp, 16
+      mov  ax, [rsi+rax]
       add  pc, 2
 }
 
 macro read_byte src {	; Read byte located at src
-      movzx edi, src
-      push edi
-      push ebx
-      call dword [cpu.mem_mngr]
-      add  esp, 8
-      mov  al, [esi+eax]
+      movzx rdi, src
+      push rdi
+      push rbx
+      call qword [cpu.mem_mngr]
+      add  rsp, 16
+      mov  al, [rsi+rax]
 }
 
 macro read_word src {	; read word located at src
-      movzx edi, src
-      push edi
-      push ebx
-      call dword [cpu.mem_mngr]
-      add  esp, 8
-      mov  ax, [esi+eax]
+      movzx rdi, src
+      push rdi
+      push rbx
+      call qword [cpu.mem_mngr]
+      add  rsp, 16
+      mov  ax, [rsi+rax]
 }
 
 macro write_byte dest {
-      movzx edi, dest
-      push ecx
-      push edi
-      push ebx
+      movzx rdi, dest
+      push rcx
+      push rdi
+      push rbx
       mov  byte [cpu.wr],1
-      call dword [cpu.mem_mngr]
+      call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  esp, 8
-      pop  ecx
-      mov  byte [esi+eax], cl
+      add  rsp, 16
+      pop  rcx
+      mov  byte [rsi+rax], cl
 }
 
 macro write_word dest {
-      movzx edi, dest
-      push ecx
-      push edi
-      push ebx
+      movzx rdi, dest
+      push rcx
+      push rdi
+      push rbx
       mov  byte [cpu.wr],1
-      call dword [cpu.mem_mngr]
+      call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  esp, 8
-      pop  ecx
-      mov  word [esi+eax], cx
+      add  rsp, 16
+      pop  rcx
+      mov  word [rsi+rax], cx
 }
 
 macro push_cx {
-      sub sp, 2
-      movzx edi, sp
-      push ecx
-      push edi
-      push ebx
+      sub  sp, 2
+      movzx rdi, sp
+      push rcx
+      push rdi
+      push rbx
       mov  byte [cpu.wr],1
-      call dword [cpu.mem_mngr]
+      call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  esp, 8
-      pop  ecx
-      mov  word [esi+eax], cx
+      add  rsp, 16
+      pop  rcx
+      mov  word [rsi+rax], cx
 }
 
 macro pop_cx {
       add sp, 2
-      movzx edi, sp
-      push edi
-      push ebx
-      call dword [cpu.mem_mngr]
-      add  esp, 8
-      mov cx, word [esi+eax-2]
+      movzx rdi, sp
+      push rdi
+      push rbx
+      call qword [cpu.mem_mngr]
+      add  rsp, 16
+      mov cx, word [rsi+rax-2]
 }

@@ -1,4 +1,4 @@
-format ELF
+format ELF64
 
 include 'struct.inc'
 include 'globals.inc'
@@ -44,104 +44,96 @@ section '.text' executable
 	extrn clock
 	extrn printf
 
-cpu_inst equ esp+4+(8*4)   ; the addition of 4 is accounting for the
-			   ; return address while the (8*4) is accounting for the pusha instruction
-
 newCPU:   ; Creates new CPU object
-    push dword sizeof.I8080CPU
-    call dword [malloc]     ; Allocates memory
+    push qword sizeof.I8080CPU
+    call qword [malloc]     ; Allocates memory
     add esp, 4
     ret
 
 
-initCPU:       ; Initializes CPU
-    pusha		 ; store registers onto stack
-    mov ebx, [cpu_inst]  ; get address of cpu instance
-    xor eax, eax	 ; zero eax
-    mov ecx, sizeof.I8080CPU-(256*4) ; Load size of object minus I/O jump table
+initCPU:       				; Initializes CPU
+    push rax 				; store registers onto stack
+    push rbx
+    push rcx
+    mov rbx, [rsp+8+8*3]  	; get address of cpu instance
+    xor eax, eax	 		; zero eax
+    mov ecx, sizeof.I8080CPU ; Load size of object minus I/O jump table
 @@:
-    mov [ebx+ecx-1], al  ; store zero at that location
-    loop @b		 ; loop while ecx > 0
+    mov [ebx+ecx-1], al		; store zero at that location
+    loop @b		 			; loop while ecx > 0
 
-    mov eax, default_mmu     ; Set the default MMU as the memory manager (returns the same address)
-    mov [cpu.mem_mngr], eax
+    mov rax, default_mmu     ; Set the default MMU as the memory manager (returns the same address)
+    mov [cpu.mem_mngr], rax
 
-    mov eax, null_handle     ; Load eax with null I/O handle (returns on entry)
-    lea ebx, [cpu.IOPorts]   ; Load address of I/O jump table
+    mov rax, null_handle     ; Load eax with null I/O handle (returns on entry)
+    lea rbx, [cpu.IOPorts]   ; Load address of I/O jump table
 
     not cl		     ; Set cl to 255 (zero-ed from previous loop instruction)
 @@:
-    mov [ebx], eax	     ; store null handle pointer in I/O table position
-    add ebx, 4		     ; Go to next I/O pointer
+    mov [rbx], rax	     ; store null handle pointer in I/O table position
+    add rbx, 8		     ; Go to next I/O pointer
     loop @b		     ; Loop while cl > 0
 
-    popa		     ; restore registers and return
+    pop rcx
+    pop rbx
+    pop rax
     ret
 
 
 
 freeCPU:     ; Frees CPU instance on stack. Just wraps free()
-    push dword [esp+4]
-    call dword [free]
-    add esp, 4
+    push qword [rsp+8]
+    call qword [free]
+    add esp, 8
     ret
 
 
 stepCPU:	 ; executes one instruction from CPU
-	pusha			   ; store all registers
-	mov ebx, [cpu_inst]	   ; Loads CPU instance into ebx
-	mov esi, [cpu.ram_address] ; load ram address into esi
+	mov rbx, [rsp+8]	   ; Loads CPU instance into ebx
+	mov rsi, [cpu.ram_address] ; load ram address into esi
 	mov al, [cpu.halt]	   ; Move halt flag into al
 	or  al, [cpu.wait]	   ; Move wait flag into al
 	jnz @f			   ; If the CPU is in a halt or wait state, then we don't execute anything
 	get_byte		   ; Otherwise load the next instruction byte into al
-	movzx eax, al
+	movzx rax, al
 	call process_instruction   ; Process instruction in al
 	sub dword [cpu.clk_counter],4	; Subtract 4 from clock count in order to counterbalance the upcoming addition of 4
 @@:	add dword [cpu.clk_counter],4	; Add 4 in case we are halted, basically NOP. If the clock stays constant, a timing loop may never exit
 	mov cl, [cpu.int_request]	; Check to see if there is an interrupt request
 	and cl, [cpu.int_enabled]	; and verify that interrupts are enabled
 	jz  @f				; If not, then we leave
-	movzx eax, [cpu.int_instruc]	; Otherwise, get the interrupt instruction
+	movzx rax, [cpu.int_instruc]	; Otherwise, get the interrupt instruction
 	mov [cpu.int_request], byte 0	; Clear request flag
 	mov [cpu.wait], byte 0		; Clear any wait or halt status
 	mov [cpu.halt], byte 0
 	call process_instruction	; Process interrupt instruction
-@@:	popa				; Restore registers and return
-	ret
+@@:	ret
 
 executeCycles:
-	pusha				 ; store all registers
-	mov  ebx, [cpu_inst]		  ; load CPU instance into ebx
-	mov  esi, [cpu.ram_address]	  ; load ram address into esi
+	mov  rbx, [rsp+8]		  	; load CPU instance into ebx
+	mov  rsi, [cpu.ram_address]	  ; load ram address into esi
 	mov  dword [cpu.clk_counter],0	  ; clear clock cycles
-	push ebx			 ; push ebx back to the stack
+	push rbx			 ; push ebx back to the stack
 cycle_loop:
 	mov  eax, [cpu.clk_counter]	  ; store counter in eax
-	cmp  eax, [cpu_inst+8]		  ; compare to the number of cycles to execute
+	cmp  eax, [rsp+16]		  ; compare to the number of cycles to execute
 	jge  cycle_end			  ; if greater than or equal, then stop
 	call stepCPU			  ; call step_cpu
 	jmp  cycle_loop 		  ; reloop
 cycle_end:
-	pop  ebx			 ; pop CPU instance
-	mov  [esp+(4*7)],eax		 ; store cycles in place of eax
-	popa				 ; pop all regs
+	pop  rbx			 ; pop CPU instance
 	ret				 ; return
 
-;proc exec C, cpu_inst, instruction:dword
+;proc executeInstruction C, cpu_inst, instruction:dword
 executeInstruction:	 ; Carry over from previous implementation; don't use.
 
-    instruction equ cpu_inst + 4
-
-    pusha
-    mov ebx, [cpu_inst]
-    mov eax, [instruction]
-    mov esi, [cpu.ram_address]
-    mov [esi-4], eax
+    mov rbx, [rsp+8]
+    mov eax, [rsp+16]
+    mov rsi, [cpu.ram_address]
+    mov [rsi-4], eax
     mov pc, -3
     movzx eax, al
     call process_instruction
-    popa
     ret
 
 
@@ -149,182 +141,168 @@ executeInstruction:	 ; Carry over from previous implementation; don't use.
 ;proc setramaddress cpu_inst, ramaddr:dword
 setMemory:	 ; Sets base RAM address of CPU. Practically obsolete since implementing MMU functionality
 
-    ramaddr  equ esp+12   ;
+    ramaddr  equ rsp+12   ;
 
-    push ebx		  ; Store ebx
-    mov ebx, [esp+8]	  ; load it with CPU instance
-    mov eax, [ramaddr]	  ; load eax with ram address
-    mov [cpu.ram_address], eax	  ; set ram address and return
-    pop ebx
+    push rbx		  ; Store rbx
+    mov rbx, [rsp+16]	  ; load it with CPU instance
+    mov rax, [ramaddr]	  ; load rax with ram address
+    mov [cpu.ram_address], rax	  ; set ram address and return
+    pop rbx
     ret
 
 getMemory:		  ; Returns base RAM address
-    push ebx
-    mov ebx, [esp+8]
-    mov eax, [cpu.ram_address]
-    pop ebx
+    push rbx
+    mov rbx, [rsp+16]
+    mov rax, [cpu.ram_address]
+    pop rbx
     ret
 
 setMMU: 		      ; Sets MMU handler
-    push ebx		      ; store ebx
-    mov ebx, [esp+8]	      ; mov CPU instance to ebx
-    mov eax, [esp+12]	      ; move pointer to MMU function to eax
-    mov [cpu.mem_mngr], eax   ; set handle
-    pop ebx		      ; restore ebx and return
+    push rbx		      ; store ebx
+    mov rbx, [rsp+16]	      ; mov CPU instance to rbx
+    mov rax, [rsp+24]	      ; move pointer to MMU function to rax
+    mov [cpu.mem_mngr], rax   ; set handle
+    pop rbx		      ; restore ebx and return
     ret
 
 clearMMU:       ; simply sets the memory manager back to default
-    push ebx
-    mov ebx, [esp+8]
+    push rbx
+    mov rbx, [rsp+16]
     mov [cpu.mem_mngr], default_mmu
-    pop ebx
+    pop rbx
     ret
 
 
 ;proc setport c cpu_inst:dword, portnumber:dword, handle:dword
 setIOPort:       ; Assign an I/O function handle to an I/O port
-
-    portnumber equ cpu_inst+4	  ; port assigning to
-    handle     equ cpu_inst+8	  ; function handle
-
-    pusha			  ; store registers
-    cmp dword [portnumber], 255   ; ensure port number is under 255
+    cmp dword [rsp+16], 255   ; ensure port number is under 255
     jle @f
-    push dword error1		  ; If not, print an error. Not sure why this is the only error I check for.
-    call dword [printf]
-    mov [esp], dword 1
+    push qword error1		  ; If not, print an error. Not sure why this is the only error I check for.
+    call qword [printf]
+    add  rsp, 8
     call exitprocess		  ; And then just leave.
-@@: mov  eax, [portnumber]	  ; Move the actual port number into eax
-    mov  ebx, [cpu_inst]	  ; Move cpu instance into ebx
-    mov  ecx, [handle]		  ; move handle into ecx
-    imul eax, 4 		  ; Calculate offset (each port in jump table is a 4-byte pointer, so we multiply our port number by 4 to get the offset
-    lea  eax, [eax+cpu.IOPorts]   ; Load address of I/O port into eax. I just wanted to use the LEA instruction.
-    mov [eax], ecx		  ; store pointer to function
-    popa			  ; restore registers and ret
+@@: mov  eax, [rsp+16]	      ; Move the actual port number into eax
+	xor  rbx, rbx
+	mov  ebx, eax
+	mov  rax, rbx
+    mov  rbx, [rsp+8]  		  ; Move cpu instance into rbx
+    mov  rcx, [rsp+24]		  ; move handle into rcx
+    imul rax, 8 		  ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
+    lea  rax, [rax+cpu.IOPorts]   ; Load address of I/O port into rax. I just wanted to use the LEA instruction.
+    mov [rax], rcx		  ; store pointer to function
     ret
 
 
 
 ;proc freeport c cpu_inst:dword, portnumber:dword
 freeIOPort:
-
-    portnumber equ cpu_inst+4
-
-    pusha
-    cmp dword [portnumber], 255
+    cmp dword [rsp+16], 255
     jle @f
-    push dword error1
-    call dword [printf]
-    add esp, 4
-    push dword 1
+    push qword error1
+    call qword [printf]
+    add  rsp, 8
     call exitprocess
-@@: mov  eax, [portnumber]
-    mov  ebx, [cpu_inst]
-    imul eax, 4
-    lea  eax, [eax+cpu.IOPorts]
-    mov [eax], dword 0
-    popa
+@@: mov  eax, [rsp+16]
+	xor  rbx, rbx
+	mov  ebx, eax
+	mov  rax, rbx
+    mov  rbx, [rsp+8]
+    imul rax, 8
+    lea  rax, [rax+cpu.IOPorts]
+    mov [rax], dword 0
+    mov [rax+4], dword 0
     ret
 
 
 
-;proc requestint C cpu_inst, intaddress:WORD
 requestInterrupt:
-
-    intaddress equ cpu_inst+4
-
-    pusha
-    mov  ebx, [cpu_inst]
-    mov  al,byte [intaddress]
-    mov [cpu.int_instruc], al
-    MOV [cpu.int_request], byte 1
-    popa
+    mov  rbx, [rsp+8]
+    mov  al, byte [rsp+16]
+    mov  [cpu.int_instruc], al
+    mov  [cpu.int_request], byte 1
     ret
 
 
 
 resetCPU:
-	push ebx
-	mov ebx, [esp+8]
+	push rbx
+	mov rbx, [rsp+16]
 	xor ax, ax
 	mov [cpu.reg_pc], ax
 	mov [cpu.int_enabled], al
 	mov [cpu.halt], al
 	mov [cpu.wait], al
-	pop ebx
+	pop rbx
 	ret
 
 
 
 interruptEnabled:
-    push ebx
-    mov ebx, [esp+8]
-    movzx eax,byte [cpu.int_enabled]
-    pop ebx
+    push rbx
+    mov rbx, [rsp+16]
+    movzx rax,byte [cpu.int_enabled]
+    pop rbx
     ret
 
 
 
 getIOState:
-    push ebx
-    mov ebx, [esp+8]
-    movzx eax, byte [cpu.wr]
-    pop ebx
+    push rbx
+    mov  rbx, [rsp+16]
+    movzx rax, byte [cpu.wr]
+    pop  rbx
     ret
 
 
 waitState:
-    push ebx
-    mov ebx, [esp+8]
-    xor eax, eax
-    mov al, [cpu.halt]
-    or	al, [cpu.wait]
-    pop ebx
+    push rbx
+    mov  rbx, [rsp+16]
+    xor  rax, rax
+    mov  al, [cpu.halt]
+    or	 al, [cpu.wait]
+    pop  rbx
     ret
 
 
 setReady:
-    push ebx
-    mov ebx, [esp+8]
-    mov al, [esp+16]
-    xor al, 1	   ; invert the value
-    mov [cpu.wait], al
-    pop ebx
+    push rbx
+    mov  rbx, [rsp+16]
+    mov  al, [rsp+24]
+    xor  al, 1	   ; invert the value
+    mov  [cpu.wait], al
+    pop  rbx
     ret
 
 
 getAccumulator:
-    push ebx
-    mov ebx, [esp+8]
-    movzx eax, a
-    cmp   byte [cpu.wr], 1
-    jz @f
-    mov eax, -1
-@@: pop ebx
+    push rbx
+    mov  rbx, [rsp+16]
+    movzx rax, a
+    cmp  byte [cpu.wr], 1
+    jz   @f
+    mov  rax, -1
+@@: pop  rbx
     ret
 
 
 
 ;proc setrega C, value:dword
 setAccumulator:
-
-    value    equ esp+12
-
-    push ebx
-    mov ebx, [esp+8]
-    mov al, byte [value]
-    mov a, al
-    movzx eax, al
-    cmp byte [cpu.wr], 1
-    jz @f
-    mov eax, -1
-@@: pop ebx
+	push rbx
+    mov  rbx, [rsp+16]
+    mov  al, byte [rsp+24]
+    mov  a, al
+    movzx rax, al
+    cmp  byte [cpu.wr], 1
+    jz   @f
+    mov  rax, -1
+@@: pop  rbx
     ret
     
     
 exitprocess:
-	mov     eax, 60         ; exit
-    xor     edi, edi        ; return code
+	mov     rax, 60         ; exit
+    xor     rdi, rdi        ; return code
     syscall 
 
 
