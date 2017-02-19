@@ -11,7 +11,7 @@ typedef struct I8080CPU {
 	int_enabled, int_request, int_instruction;
 } __attribute__((packed)) I8080;
 
-#  ifdef OS_UNIX
+#  ifdef __unix__
 #    define __cdecl
 #   endif
 
