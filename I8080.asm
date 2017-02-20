@@ -111,9 +111,10 @@ executeCycles:
 cycle_loop:
 	cmp  [cpu.clk_counter], esi	 ; compare to the number of cycles to execute
 	jge  cycle_end			     ; if greater than or equal, then stop
-    push rsi
+    push rsi                    ; store counter
+    mov  rdi, rbx               ; pass CPU instance
 	call stepCPU			     ; call step_cpu
-    pop  rsi
+    pop  rsi                    ; restore counter
 	jmp  cycle_loop 		     ; reloop
 cycle_end:
     pop rbx
