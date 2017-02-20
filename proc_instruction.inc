@@ -621,18 +621,24 @@ process_instruction:
 		ret
 		
 	.instr_0x34: ; inr m
-		add dword [cpu.clk_counter],10
-		movzx edi, hl
+		add  dword [cpu.clk_counter],10
+		mov  rdi, rbx
+		movzx rsi, hl
+		call qword [cpu.mem_mngr]
+		mov  rdx, rax
 		lflags
-		inc byte [edi+esi]
+		inc byte [rdx]
 		sflags
 		ret
 		
 	.instr_0x35: ; dcr m
-		add dword [cpu.clk_counter],10
-		movzx edi, hl
+		add  dword [cpu.clk_counter],10
+		mov  rdi, rbx
+		movzx rsi, hl
+		call qword [cpu.mem_mngr]
+		mov  rdx, rax
 		lflags
-		dec byte [edi+esi]
+		dec byte [rdx]
 		sflags
 		ret
 		
