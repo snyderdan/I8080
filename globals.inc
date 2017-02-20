@@ -33,8 +33,8 @@ ends
 
 ; CPU critical information
 
-virtual at rbx	   ; set up a virtual object at ebx
-    cpu I8080CPU   ; anytime we reference cpu, it will use ebx as the base address, and add an offset based on what attribute is being accessed.
+virtual at rbx	   ; set up a virtual object at rbx
+    cpu I8080CPU   ; anytime we reference cpu, it will use rbx as the base address, and add an offset based on what attribute is being accessed.
 end virtual
 
 ; 8-bit registers
@@ -65,7 +65,8 @@ null_handle:
 default_mmu:
     push rbx
     mov  rbx, rdi
-    mov  rax, rsi
+    xor  rax, rax
+    mov  eax, esi
     lea  rax, [rax+cpu.ram_address]
     pop  rbx
     ret
@@ -111,30 +112,36 @@ macro read_word src {	; read word located at src
 }
 
 macro write_byte dest {
+      push rcx
       movzx rsi, dest
       mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
+      pop  rcx
       mov  [rax], cl
 }
 
 macro write_word dest {
+      push rcx
       movzx rsi, dest
       mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
+      pop  rcx
       mov  [rax], cx
 }
 
 macro push_cx {
+      push rcx
       sub  sp, 2
       movzx rsi, sp
       mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
+      pop  rcx
       mov  [rax], cx
 }
 

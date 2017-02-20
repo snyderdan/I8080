@@ -1556,7 +1556,8 @@ process_instruction:
 		add dword [cpu.clk_counter],11
 		pop_cx
 		mov pc, cx
-	 @@:	ret
+	 @@:	
+	    ret
 		
 	.instr_0xc1: ; pop b
 		add dword [cpu.clk_counter],10
@@ -1571,7 +1572,8 @@ process_instruction:
 		lflags
 		jz @f  ; skip jmp if zero
 		mov pc, cx
-	  @@:	ret
+	  @@:	
+	    ret
 		
 	.instr_0xc3: ; jmp word
 		add dword [cpu.clk_counter],10
@@ -1590,7 +1592,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	  @@:	add esp, 2
+	  @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xc5: ; push b
@@ -1652,7 +1655,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xcd: ; call word
@@ -1725,8 +1729,9 @@ process_instruction:
 		push_cx
 		pop  pc
 		ret
-		add esp, 2
-	 @@:	ret
+	 @@:
+		add rsp, 2
+	    ret
 		
 	.instr_0xd5: ; push d
 		add dword [cpu.clk_counter],11
@@ -1790,7 +1795,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:
+	 	add rsp, 2
 		ret
 		
 	.instr_0xdd:
@@ -1819,7 +1825,8 @@ process_instruction:
 		add dword [cpu.clk_counter],11
 		pop_cx
 		mov pc, cx
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xe1: ; pop h
 		add dword [cpu.clk_counter],10
@@ -1833,7 +1840,8 @@ process_instruction:
 		lflags
 		jpe @f
 		mov pc, ax
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xe3: ; xthl
 		add dword [cpu.clk_counter],18
@@ -1853,7 +1861,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xe5: ; push h
@@ -1898,7 +1907,8 @@ process_instruction:
 		lflags
 		jpo @f
 		mov pc, cx
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xeb: ; xchg
 		add dword [cpu.clk_counter],4
@@ -1918,7 +1928,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	 	add rsp, 2
 		ret
 		
 	.instr_0xed:
@@ -1980,7 +1991,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	 	add rsp, 2
 		ret
 		
 	.instr_0xf5: ; push psw
@@ -2043,7 +2055,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xfd:

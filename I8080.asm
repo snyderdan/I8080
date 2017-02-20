@@ -81,8 +81,8 @@ freeCPU:     ; Frees CPU instance on stack. Just wraps free()
 
 stepCPU:	 ; executes one instruction from CPU
     push rbx
-	mov rbx, rdi       	   ; Loads CPU instance into ebx
-	mov rsi, [cpu.ram_address] ; load ram address into esi
+	mov rbx, rdi       	   ; Loads CPU instance into rbx
+	mov rsi, [cpu.ram_address] ; load ram address into rsi
 	mov al, [cpu.halt]	   ; Move halt flag into al
 	or  al, [cpu.wait]	   ; Move wait flag into al
 	jnz @f			   ; If the CPU is in a halt or wait state, then we don't execute anything
@@ -106,19 +106,18 @@ stepCPU:	 ; executes one instruction from CPU
 
 executeCycles:
     push rbx
-	mov  rbx, rdi      		  	; load CPU instance into ebx
-    mov  ecx, esi               ; store cycle count in ecx
-	mov  rsi, [cpu.ram_address]	  ; load ram address into esi
+	mov  rbx, rdi      		  	  ; load CPU instance into rbx
 	mov  dword [cpu.clk_counter],0	  ; clear clock cycles
 cycle_loop:
-	mov  eax, [cpu.clk_counter]	  ; store counter in eax
-	cmp  eax, ecx		      ; compare to the number of cycles to execute
-	jge  cycle_end			  ; if greater than or equal, then stop
-	call stepCPU			  ; call step_cpu
-	jmp  cycle_loop 		  ; reloop
+	cmp  [cpu.clk_counter], esi	 ; compare to the number of cycles to execute
+	jge  cycle_end			     ; if greater than or equal, then stop
+    push rsi
+	call stepCPU			     ; call step_cpu
+    pop  rsi
+	jmp  cycle_loop 		     ; reloop
 cycle_end:
     pop rbx
-	ret				          ; return
+	ret				             ; return
 
 
 
