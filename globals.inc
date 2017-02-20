@@ -139,8 +139,8 @@ macro push_cx {
 }
 
 macro pop_cx {
-      add  sp, 2
       movzx rsi, sp
+      add  sp, 2
       mov  rdi, rbx
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
