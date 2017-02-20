@@ -63,7 +63,11 @@ null_handle:
     ret
 
 default_mmu:
-    mov rax, rsi
+    push rbx
+    mov  rbx, rdi
+    mov  rax, rsi
+    lea  rax, [rax+cpu.ram_address]
+    pop  rbx
     ret
 
 macro lflags {	     ; load flags from cpu instance
@@ -80,7 +84,6 @@ macro get_byte {	 ; Get next byte pointed to by PC and increment PC
       movzx rsi, pc
       mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rax, [cpu.ram_address]
       mov  al, [rax]
       inc  pc
 }
@@ -89,7 +92,6 @@ macro get_word {	; Get next word pointed to by PC and increment PC
       movzx rsi, pc
       mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rax, [cpu.ram_address]
       mov  ax, [rax]
       add  pc, 2
 }
@@ -98,7 +100,6 @@ macro read_byte src {	; Read byte located at src
       movzx rsi, src
       mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rax, [cpu.ram_address]
       mov  al, [rax]
 }
 
@@ -106,7 +107,6 @@ macro read_word src {	; read word located at src
       movzx rsi, src
       mov  rdi, rbx
       call qword [cpu.mem_mngr]
-      add  rax, [cpu.ram_address]
       mov  ax, [rax]
 }
 
@@ -116,7 +116,6 @@ macro write_byte dest {
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rax, [cpu.ram_address]
       mov  [rax], cl
 }
 
@@ -126,7 +125,6 @@ macro write_word dest {
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rax, [cpu.ram_address]
       mov  [rax], cx
 }
 
@@ -137,7 +135,6 @@ macro push_cx {
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rax, [cpu.ram_address]
       mov  [rax], cx
 }
 
@@ -148,6 +145,5 @@ macro pop_cx {
       mov  byte [cpu.wr],1
       call qword [cpu.mem_mngr]
       mov  byte [cpu.wr],0
-      add  rax, [cpu.ram_address]
       mov  cx, [rax]
 }
