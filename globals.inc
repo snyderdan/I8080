@@ -25,7 +25,7 @@ struct I8080CPU    ; structure for I8080 object
     reg_f   db	?
     halt    db	?	; flag if CPU is in halt state
     wr	    db	?	; write wire; tells I/O functions state of CPU
-    wait    db	?	; flag if CPU is in wait state
+    hold    db	?	; flag if CPU is in hold state
     int_enabled db  ?	; flag set if interrupts are enabled
     int_request db  ?	; flag set when interrupt is requested
     int_instruc db  ?	; instruction passed from interrupt

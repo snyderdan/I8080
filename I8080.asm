@@ -32,8 +32,8 @@ section '.text' executable
 	public newCPU
 	public initCPU
 	public freeCPU
-	public waitState
-	public setReady
+	public getHoldState
+	public setHold
 	public setMMU
 	public executeCycles
 	public clearMMU
@@ -52,16 +52,16 @@ newCPU:   ; Creates new CPU object
 initCPU:       				; Initializes CPU
     push rbx
     mov rbx, rdi          	; get address of cpu instance
-    xor rax, rax	 		; zero eax
-    mov rcx, sizeof.I8080CPU ; Load size of object minus I/O jump table
+    xor rax, rax	 		; zero rax
+    mov rcx, sizeof.I8080CPU ; Load size of object
 @@:
     mov [rbx+rcx-1], al		; store zero at that location
-    loop @b		 			; loop while ecx > 0
+    loop @b		 			; loop while rcx > 0
 
     mov rax, default_mmu     ; Set the default MMU as the memory manager (returns the same address)
     mov [cpu.mem_mngr], rax
 
-    mov rax, null_handle     ; Load eax with null I/O handle (returns on entry)
+    mov rax, null_handle     ; Load rax with null I/O handle (returns on entry)
     lea rbx, [cpu.IOPorts]   ; Load address of I/O jump table
 
     not cl		     ; Set cl to 255 (zero-ed from previous loop instruction)
@@ -84,20 +84,22 @@ stepCPU:	 ; executes one instruction from CPU
 	mov rbx, rdi       	   ; Loads CPU instance into rbx
 	mov rsi, [cpu.ram_address] ; load ram address into rsi
 	mov al, [cpu.halt]	   ; Move halt flag into al
-	or  al, [cpu.wait]	   ; Move wait flag into al
-	jnz @f			   ; If the CPU is in a halt or wait state, then we don't execute anything
+	or  al, [cpu.hold]	   ; Move hold flag into al
+	jnz @f			   ; If the CPU is in a halt or hold state, then we don't execute anything
 	get_byte		   ; Otherwise load the next instruction byte into al
 	movzx rax, al
-	call process_instruction   ; Process instruction in al
+	call process_instruction   	; Process instruction in al
 	sub dword [cpu.clk_counter],4	; Subtract 4 from clock count in order to counterbalance the upcoming addition of 4
 @@:	add dword [cpu.clk_counter],4	; Add 4 in case we are halted, basically NOP. If the clock stays constant, a timing loop may never exit
-	mov cl, [cpu.int_request]	; Check to see if there is an interrupt request
-	and cl, [cpu.int_enabled]	; and verify that interrupts are enabled
-	jz  @f				; If not, then we leave
+	mov cl, [cpu.int_request]		; Check to see if there is an interrupt request
+	and cl, [cpu.int_enabled]		; and verify that interrupts are enabled
+	mov [cpu.int_request], byte 0 	; clear interrupt request (we are either taking the request or not. No second chance)
+	jz  @f					; If not, then we leave
+	and cl, [cpu.hold]		; If we are in a hold state, we do not acknowledge the interrupt
+	jnz @f
 	movzx rax, [cpu.int_instruc]	; Otherwise, get the interrupt instruction
-	mov [cpu.int_request], byte 0	; Clear request flag
-	mov [cpu.wait], byte 0		; Clear any wait or halt status
-	mov [cpu.halt], byte 0
+	mov [cpu.int_enabled], byte 0	; Disable interrupts to process interrupt
+	mov [cpu.halt], byte 0		; Clear halt status
 	call process_instruction	; Process interrupt instruction
 @@:	pop rbx
     ret
@@ -211,7 +213,7 @@ resetCPU:
 	mov [cpu.reg_pc], ax
 	mov [cpu.int_enabled], al
 	mov [cpu.halt], al
-	mov [cpu.wait], al
+	mov [cpu.hold], al
 	pop rbx
 	ret
 
@@ -234,22 +236,21 @@ getIOState:
     ret
 
 
-waitState:
+getHoldState:
     push rbx
     mov  rbx, rdi
     xor  rax, rax
-    mov  al, [cpu.halt]
-    or	 al, [cpu.wait]
+    mov  al, [cpu.hold]
     pop  rbx
     ret
 
 
-setReady:
+setHold:
     push rbx
     mov  rbx, rdi
     mov  ax, si
     xor  al, 1	   ; invert the value
-    mov  [cpu.wait], al
+    mov  [cpu.hold], al
     pop  rbx
     ret
 
