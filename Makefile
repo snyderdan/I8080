@@ -3,10 +3,10 @@ OUTPUT_DIR = bin
 SOURCES = $(wildcard $(SOURCE_DIR)/*.*)
 
 ifeq ($(OS), Windows_NT)
-	ROOT = $(SOURCE_DIR)/I8080.asm
+	ROOT = $(SOURCE_DIR)/I8080_windows.asm
 	EXECUTABLE=$(OUTPUT_DIR)/I8080.dll
 else
-	ROOT = $(SOURCE_DIR)/I8080.asm
+	ROOT = $(SOURCE_DIR)/I8080_unix.asm
 	EXECUTABLE=$(OUTPUT_DIR)/I8080.o
 endif
 
