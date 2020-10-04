@@ -10,18 +10,13 @@ section '.code' code readable executable
 ; Actual I8080 interface methods, defined in a OS independent way
 include 'I8080_methods.inc'
 
-section '.data' data readable writeable
-	error1 db 'IO Port must be in the range of (0x00-0xFF)',10,0
-
 section '.idata' import data readable writeable
 
 	library msvcrt, 'msvcrt.dll'
 
 	import msvcrt,malloc,'malloc',\
-           free,'free',\
-           printf,'printf',\
-           clock,'clock'
-
+           free,'free'
+           
 section '.edata' export data readable
 
 	export 'I8080.DLL',\

@@ -40,11 +40,6 @@ section '.text' executable
 	
 	extrn malloc
 	extrn free
-	extrn clock
-	extrn printf
 
 ; Actual I8080 interface methods, defined in a OS independent way
 include 'I8080_methods.inc'
-
-section '.data' writeable
-  error1 db 'IO Port must be in the range of (0x00-0xFF)',10,0

@@ -4,8 +4,6 @@
 ; Windows and *nix machines:
 ;       malloc
 ;       free
-;       printf (necessary?)
-;       clock (necessary?)
 ;
 
 newCPU:   ; Creates new CPU object
@@ -124,18 +122,13 @@ clearMMU:       ; simply sets the memory manager back to default
 ;proc setport c cpu_inst:dword, portnumber:dword, handle:dword
 setIOPort:          ; Assign an I/O function handle to an I/O port
     push rbx
-    cmp  esi, 255    ; ensure port number is under 255
-    jle  @f
-    push qword error1		; If not, print an error. Not sure why this is the only error I check for.
-    call printf
-    add  rsp, 8
-    call exitprocess		; And then just leave.
-@@: xor  rax, rax
+    xor  rax, rax
     mov  eax, esi           ; move port number to eax
     mov  rbx, rdi     		; Move cpu instance into rbx
     imul rax, 8 		  ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
     mov  [rax+cpu.IOPorts], rdx		  ; store pointer to function
     pop  rbx
+    mov  rax, 0
     ret
 
 
@@ -143,13 +136,7 @@ setIOPort:          ; Assign an I/O function handle to an I/O port
 ;proc freeport c cpu_inst:dword, portnumber:dword
 freeIOPort:
     push rbx
-    cmp  esi, 255
-    jle  @f
-    push qword error1
-    call printf
-    add  rsp, 8
-    call exitprocess
-@@: xor  rax, rax
+    xor  rax, rax
     mov  eax, esi           ; move port number to eax
     mov  rbx, rdi           ; Move cpu instance into rbx
     imul rax, 8           ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset

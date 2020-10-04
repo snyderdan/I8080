@@ -59,12 +59,13 @@ extern int  __cdecl executeCycles(I8080 *cpu, int cycleCount);
  * instruction is input or output and getting the accumulator for outputs
  * as well as setting it for input. 
  * 
- * This instruction should only be used during the configuration of the 
+ * This function should only be used during the configuration of the 
  * CPU and may have undefined side effects if used during CPU execution 
  * 
  * The handle should be a void function that takes a pointer to an I8080 as an argument
+ *
  */
-extern void __cdecl setIOPort(I8080 *cpu, int portno, void (*handle)(I8080 *instance)); 
+extern int __cdecl setIOPort(I8080 *cpu, int portno, void (*handle)(I8080 *instance)); 
 
 extern int __cdecl getIOState(I8080 *); // returns 1 if in output mode or 0 if in input mode
 #  define INPUT      0
