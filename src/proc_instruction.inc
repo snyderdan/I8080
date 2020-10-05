@@ -1,265 +1,266 @@
 process_instruction:
-	imul eax,  4	  ; scale from 1 to 4 bytes
-	add  eax,  dword .instr_jmp_table ; adds offset of instr_jmp_table
-	jmp  dword [eax]   ; jumps to address pointed to by eax
+	imul rax, 8	  ; scale from 1 to 8 bytes
+	mov  rdx, qword .instr_jmp_table
+	add  rax, rdx
+	jmp  qword [rax]   ; jumps to address pointed to by eax
 
 	.instr_jmp_table:
-		dd .instr_0x0
-		dd .instr_0x1
-		dd .instr_0x2
-		dd .instr_0x3
-		dd .instr_0x4
-		dd .instr_0x5
-		dd .instr_0x6
-		dd .instr_0x7
-		dd .instr_0x8
-		dd .instr_0x9
-		dd .instr_0xa
-		dd .instr_0xb
-		dd .instr_0xc
-		dd .instr_0xd
-		dd .instr_0xe
-		dd .instr_0xf
-		dd .instr_0x10
-		dd .instr_0x11
-		dd .instr_0x12
-		dd .instr_0x13
-		dd .instr_0x14
-		dd .instr_0x15
-		dd .instr_0x16
-		dd .instr_0x17
-		dd .instr_0x18
-		dd .instr_0x19
-		dd .instr_0x1a
-		dd .instr_0x1b
-		dd .instr_0x1c
-		dd .instr_0x1d
-		dd .instr_0x1e
-		dd .instr_0x1f
-		dd .instr_0x20
-		dd .instr_0x21
-		dd .instr_0x22
-		dd .instr_0x23
-		dd .instr_0x24
-		dd .instr_0x25
-		dd .instr_0x26
-		dd .instr_0x27
-		dd .instr_0x28
-		dd .instr_0x29
-		dd .instr_0x2a
-		dd .instr_0x2b
-		dd .instr_0x2c
-		dd .instr_0x2d
-		dd .instr_0x2e
-		dd .instr_0x2f
-		dd .instr_0x30
-		dd .instr_0x31
-		dd .instr_0x32
-		dd .instr_0x33
-		dd .instr_0x34
-		dd .instr_0x35
-		dd .instr_0x36
-		dd .instr_0x37
-		dd .instr_0x38
-		dd .instr_0x39
-		dd .instr_0x3a
-		dd .instr_0x3b
-		dd .instr_0x3c
-		dd .instr_0x3d
-		dd .instr_0x3e
-		dd .instr_0x3f
-		dd .instr_0x40
-		dd .instr_0x41
-		dd .instr_0x42
-		dd .instr_0x43
-		dd .instr_0x44
-		dd .instr_0x45
-		dd .instr_0x46
-		dd .instr_0x47
-		dd .instr_0x48
-		dd .instr_0x49
-		dd .instr_0x4a
-		dd .instr_0x4b
-		dd .instr_0x4c
-		dd .instr_0x4d
-		dd .instr_0x4e
-		dd .instr_0x4f
-		dd .instr_0x50
-		dd .instr_0x51
-		dd .instr_0x52
-		dd .instr_0x53
-		dd .instr_0x54
-		dd .instr_0x55
-		dd .instr_0x56
-		dd .instr_0x57
-		dd .instr_0x58
-		dd .instr_0x59
-		dd .instr_0x5a
-		dd .instr_0x5b
-		dd .instr_0x5c
-		dd .instr_0x5d
-		dd .instr_0x5e
-		dd .instr_0x5f
-		dd .instr_0x60
-		dd .instr_0x61
-		dd .instr_0x62
-		dd .instr_0x63
-		dd .instr_0x64
-		dd .instr_0x65
-		dd .instr_0x66
-		dd .instr_0x67
-		dd .instr_0x68
-		dd .instr_0x69
-		dd .instr_0x6a
-		dd .instr_0x6b
-		dd .instr_0x6c
-		dd .instr_0x6d
-		dd .instr_0x6e
-		dd .instr_0x6f
-		dd .instr_0x70
-		dd .instr_0x71
-		dd .instr_0x72
-		dd .instr_0x73
-		dd .instr_0x74
-		dd .instr_0x75
-		dd .instr_0x76
-		dd .instr_0x77
-		dd .instr_0x78
-		dd .instr_0x79
-		dd .instr_0x7a
-		dd .instr_0x7b
-		dd .instr_0x7c
-		dd .instr_0x7d
-		dd .instr_0x7e
-		dd .instr_0x7f
-		dd .instr_0x80
-		dd .instr_0x81
-		dd .instr_0x82
-		dd .instr_0x83
-		dd .instr_0x84
-		dd .instr_0x85
-		dd .instr_0x86
-		dd .instr_0x87
-		dd .instr_0x88
-		dd .instr_0x89
-		dd .instr_0x8a
-		dd .instr_0x8b
-		dd .instr_0x8c
-		dd .instr_0x8d
-		dd .instr_0x8e
-		dd .instr_0x8f
-		dd .instr_0x90
-		dd .instr_0x91
-		dd .instr_0x92
-		dd .instr_0x93
-		dd .instr_0x94
-		dd .instr_0x95
-		dd .instr_0x96
-		dd .instr_0x97
-		dd .instr_0x98
-		dd .instr_0x99
-		dd .instr_0x9a
-		dd .instr_0x9b
-		dd .instr_0x9c
-		dd .instr_0x9d
-		dd .instr_0x9e
-		dd .instr_0x9f
-		dd .instr_0xa0
-		dd .instr_0xa1
-		dd .instr_0xa2
-		dd .instr_0xa3
-		dd .instr_0xa4
-		dd .instr_0xa5
-		dd .instr_0xa6
-		dd .instr_0xa7
-		dd .instr_0xa8
-		dd .instr_0xa9
-		dd .instr_0xaa
-		dd .instr_0xab
-		dd .instr_0xac
-		dd .instr_0xad
-		dd .instr_0xae
-		dd .instr_0xaf
-		dd .instr_0xb0
-		dd .instr_0xb1
-		dd .instr_0xb2
-		dd .instr_0xb3
-		dd .instr_0xb4
-		dd .instr_0xb5
-		dd .instr_0xb6
-		dd .instr_0xb7
-		dd .instr_0xb8
-		dd .instr_0xb9
-		dd .instr_0xba
-		dd .instr_0xbb
-		dd .instr_0xbc
-		dd .instr_0xbd
-		dd .instr_0xbe
-		dd .instr_0xbf
-		dd .instr_0xc0
-		dd .instr_0xc1
-		dd .instr_0xc2
-		dd .instr_0xc3
-		dd .instr_0xc4
-		dd .instr_0xc5
-		dd .instr_0xc6
-		dd .instr_0xc7
-		dd .instr_0xc8
-		dd .instr_0xc9
-		dd .instr_0xca
-		dd .instr_0xcb
-		dd .instr_0xcc
-		dd .instr_0xcd
-		dd .instr_0xce
-		dd .instr_0xcf
-		dd .instr_0xd0
-		dd .instr_0xd1
-		dd .instr_0xd2
-		dd .instr_0xd3
-		dd .instr_0xd4
-		dd .instr_0xd5
-		dd .instr_0xd6
-		dd .instr_0xd7
-		dd .instr_0xd8
-		dd .instr_0xd9
-		dd .instr_0xda
-		dd .instr_0xdb
-		dd .instr_0xdc
-		dd .instr_0xdd
-		dd .instr_0xde
-		dd .instr_0xdf
-		dd .instr_0xe0
-		dd .instr_0xe1
-		dd .instr_0xe2
-		dd .instr_0xe3
-		dd .instr_0xe4
-		dd .instr_0xe5
-		dd .instr_0xe6
-		dd .instr_0xe7
-		dd .instr_0xe8
-		dd .instr_0xe9
-		dd .instr_0xea
-		dd .instr_0xeb
-		dd .instr_0xec
-		dd .instr_0xed
-		dd .instr_0xee
-		dd .instr_0xef
-		dd .instr_0xf0
-		dd .instr_0xf1
-		dd .instr_0xf2
-		dd .instr_0xf3
-		dd .instr_0xf4
-		dd .instr_0xf5
-		dd .instr_0xf6
-		dd .instr_0xf7
-		dd .instr_0xf8
-		dd .instr_0xf9
-		dd .instr_0xfa
-		dd .instr_0xfb
-		dd .instr_0xfc
-		dd .instr_0xfd
-		dd .instr_0xfe
-		dd .instr_0xff
+		dq .instr_0x0
+		dq .instr_0x1
+		dq .instr_0x2
+		dq .instr_0x3
+		dq .instr_0x4
+		dq .instr_0x5
+		dq .instr_0x6
+		dq .instr_0x7
+		dq .instr_0x8
+		dq .instr_0x9
+		dq .instr_0xa
+		dq .instr_0xb
+		dq .instr_0xc
+		dq .instr_0xd
+		dq .instr_0xe
+		dq .instr_0xf
+		dq .instr_0x10
+		dq .instr_0x11
+		dq .instr_0x12
+		dq .instr_0x13
+		dq .instr_0x14
+		dq .instr_0x15
+		dq .instr_0x16
+		dq .instr_0x17
+		dq .instr_0x18
+		dq .instr_0x19
+		dq .instr_0x1a
+		dq .instr_0x1b
+		dq .instr_0x1c
+		dq .instr_0x1d
+		dq .instr_0x1e
+		dq .instr_0x1f
+		dq .instr_0x20
+		dq .instr_0x21
+		dq .instr_0x22
+		dq .instr_0x23
+		dq .instr_0x24
+		dq .instr_0x25
+		dq .instr_0x26
+		dq .instr_0x27
+		dq .instr_0x28
+		dq .instr_0x29
+		dq .instr_0x2a
+		dq .instr_0x2b
+		dq .instr_0x2c
+		dq .instr_0x2d
+		dq .instr_0x2e
+		dq .instr_0x2f
+		dq .instr_0x30
+		dq .instr_0x31
+		dq .instr_0x32
+		dq .instr_0x33
+		dq .instr_0x34
+		dq .instr_0x35
+		dq .instr_0x36
+		dq .instr_0x37
+		dq .instr_0x38
+		dq .instr_0x39
+		dq .instr_0x3a
+		dq .instr_0x3b
+		dq .instr_0x3c
+		dq .instr_0x3d
+		dq .instr_0x3e
+		dq .instr_0x3f
+		dq .instr_0x40
+		dq .instr_0x41
+		dq .instr_0x42
+		dq .instr_0x43
+		dq .instr_0x44
+		dq .instr_0x45
+		dq .instr_0x46
+		dq .instr_0x47
+		dq .instr_0x48
+		dq .instr_0x49
+		dq .instr_0x4a
+		dq .instr_0x4b
+		dq .instr_0x4c
+		dq .instr_0x4d
+		dq .instr_0x4e
+		dq .instr_0x4f
+		dq .instr_0x50
+		dq .instr_0x51
+		dq .instr_0x52
+		dq .instr_0x53
+		dq .instr_0x54
+		dq .instr_0x55
+		dq .instr_0x56
+		dq .instr_0x57
+		dq .instr_0x58
+		dq .instr_0x59
+		dq .instr_0x5a
+		dq .instr_0x5b
+		dq .instr_0x5c
+		dq .instr_0x5d
+		dq .instr_0x5e
+		dq .instr_0x5f
+		dq .instr_0x60
+		dq .instr_0x61
+		dq .instr_0x62
+		dq .instr_0x63
+		dq .instr_0x64
+		dq .instr_0x65
+		dq .instr_0x66
+		dq .instr_0x67
+		dq .instr_0x68
+		dq .instr_0x69
+		dq .instr_0x6a
+		dq .instr_0x6b
+		dq .instr_0x6c
+		dq .instr_0x6d
+		dq .instr_0x6e
+		dq .instr_0x6f
+		dq .instr_0x70
+		dq .instr_0x71
+		dq .instr_0x72
+		dq .instr_0x73
+		dq .instr_0x74
+		dq .instr_0x75
+		dq .instr_0x76
+		dq .instr_0x77
+		dq .instr_0x78
+		dq .instr_0x79
+		dq .instr_0x7a
+		dq .instr_0x7b
+		dq .instr_0x7c
+		dq .instr_0x7d
+		dq .instr_0x7e
+		dq .instr_0x7f
+		dq .instr_0x80
+		dq .instr_0x81
+		dq .instr_0x82
+		dq .instr_0x83
+		dq .instr_0x84
+		dq .instr_0x85
+		dq .instr_0x86
+		dq .instr_0x87
+		dq .instr_0x88
+		dq .instr_0x89
+		dq .instr_0x8a
+		dq .instr_0x8b
+		dq .instr_0x8c
+		dq .instr_0x8d
+		dq .instr_0x8e
+		dq .instr_0x8f
+		dq .instr_0x90
+		dq .instr_0x91
+		dq .instr_0x92
+		dq .instr_0x93
+		dq .instr_0x94
+		dq .instr_0x95
+		dq .instr_0x96
+		dq .instr_0x97
+		dq .instr_0x98
+		dq .instr_0x99
+		dq .instr_0x9a
+		dq .instr_0x9b
+		dq .instr_0x9c
+		dq .instr_0x9d
+		dq .instr_0x9e
+		dq .instr_0x9f
+		dq .instr_0xa0
+		dq .instr_0xa1
+		dq .instr_0xa2
+		dq .instr_0xa3
+		dq .instr_0xa4
+		dq .instr_0xa5
+		dq .instr_0xa6
+		dq .instr_0xa7
+		dq .instr_0xa8
+		dq .instr_0xa9
+		dq .instr_0xaa
+		dq .instr_0xab
+		dq .instr_0xac
+		dq .instr_0xad
+		dq .instr_0xae
+		dq .instr_0xaf
+		dq .instr_0xb0
+		dq .instr_0xb1
+		dq .instr_0xb2
+		dq .instr_0xb3
+		dq .instr_0xb4
+		dq .instr_0xb5
+		dq .instr_0xb6
+		dq .instr_0xb7
+		dq .instr_0xb8
+		dq .instr_0xb9
+		dq .instr_0xba
+		dq .instr_0xbb
+		dq .instr_0xbc
+		dq .instr_0xbd
+		dq .instr_0xbe
+		dq .instr_0xbf
+		dq .instr_0xc0
+		dq .instr_0xc1
+		dq .instr_0xc2
+		dq .instr_0xc3
+		dq .instr_0xc4
+		dq .instr_0xc5
+		dq .instr_0xc6
+		dq .instr_0xc7
+		dq .instr_0xc8
+		dq .instr_0xc9
+		dq .instr_0xca
+		dq .instr_0xcb
+		dq .instr_0xcc
+		dq .instr_0xcd
+		dq .instr_0xce
+		dq .instr_0xcf
+		dq .instr_0xd0
+		dq .instr_0xd1
+		dq .instr_0xd2
+		dq .instr_0xd3
+		dq .instr_0xd4
+		dq .instr_0xd5
+		dq .instr_0xd6
+		dq .instr_0xd7
+		dq .instr_0xd8
+		dq .instr_0xd9
+		dq .instr_0xda
+		dq .instr_0xdb
+		dq .instr_0xdc
+		dq .instr_0xdd
+		dq .instr_0xde
+		dq .instr_0xdf
+		dq .instr_0xe0
+		dq .instr_0xe1
+		dq .instr_0xe2
+		dq .instr_0xe3
+		dq .instr_0xe4
+		dq .instr_0xe5
+		dq .instr_0xe6
+		dq .instr_0xe7
+		dq .instr_0xe8
+		dq .instr_0xe9
+		dq .instr_0xea
+		dq .instr_0xeb
+		dq .instr_0xec
+		dq .instr_0xed
+		dq .instr_0xee
+		dq .instr_0xef
+		dq .instr_0xf0
+		dq .instr_0xf1
+		dq .instr_0xf2
+		dq .instr_0xf3
+		dq .instr_0xf4
+		dq .instr_0xf5
+		dq .instr_0xf6
+		dq .instr_0xf7
+		dq .instr_0xf8
+		dq .instr_0xf9
+		dq .instr_0xfa
+		dq .instr_0xfb
+		dq .instr_0xfc
+		dq .instr_0xfd
+		dq .instr_0xfe
+		dq .instr_0xff
 		
 	;
 	; many instructions such as 0x8, 0x10, and 0x18 are undefined in the
@@ -512,11 +513,39 @@ process_instruction:
 		
 	.instr_0x27: ; daa
 		add dword [cpu.clk_counter],4
-		lflags
-		mov al, a
-		daa
-		mov a, al
+		lflags				; load virtual flags in ah
+		mov  ch, ah			; store working copy in ch
+		mov  cl, ch			; store old copy in cl
+		test ah, 16			; AF set?
+		jnz  .loadjust		; if it is, perform adjustment
+		mov  al, a			; otherwise, we check if the lower digit is over 9
+		and  al, 0FH		; extract lower BCD digit
+		cmp  al, 9			; digit > 9?
+		jg   .loadjust		; perform adjustment
+		mov  al, a			; 
+		and  ch, (255-16)	; otherwise, clear AF in ch
+		jmp  .hibyte		; go to process high digit
+	  .loadjust:
+		mov  al, a			; load number
+		add  al, 6			; add 6
+		or   ch, 16			; set AF flag
+		jnc  .hibyte		; set carry if necessary
+		or   ch, 1
+	  .hibyte:
+		cmp  a, 99H			; A > 99H?
+		jg	 .hiadjust		; if so, adjust
+		test cl, 1			; old CF set?
+		jnz  .hiadjust		; if so, adjust
+		and  ch, 254		; otherwise, clear carry
+		jmp  @f				; skip adjustment
+	  .hiadjust:
+		add  al, 60H		; adjust
+		or   ch, 1			; set carry
+	  @@:
+		mov  a, al
+		mov  [cpu.reg_f], ch
 		ret
+		
 		
 	.instr_0x28:
 		add dword [cpu.clk_counter],4
@@ -592,18 +621,24 @@ process_instruction:
 		ret
 		
 	.instr_0x34: ; inr m
-		add dword [cpu.clk_counter],10
-		movzx edi, hl
+		add  dword [cpu.clk_counter],10
+		mov  rdi, rbx
+		movzx rsi, hl
+		call qword [cpu.mem_mngr]
+		mov  rdx, rax
 		lflags
-		inc byte [edi+esi]
+		inc byte [rdx]
 		sflags
 		ret
 		
 	.instr_0x35: ; dcr m
-		add dword [cpu.clk_counter],10
-		movzx edi, hl
+		add  dword [cpu.clk_counter],10
+		mov  rdi, rbx
+		movzx rsi, hl
+		call qword [cpu.mem_mngr]
+		mov  rdx, rax
 		lflags
-		dec byte [edi+esi]
+		dec byte [rdx]
 		sflags
 		ret
 		
@@ -1521,7 +1556,8 @@ process_instruction:
 		add dword [cpu.clk_counter],11
 		pop_cx
 		mov pc, cx
-	 @@:	ret
+	 @@:	
+	    ret
 		
 	.instr_0xc1: ; pop b
 		add dword [cpu.clk_counter],10
@@ -1536,7 +1572,8 @@ process_instruction:
 		lflags
 		jz @f  ; skip jmp if zero
 		mov pc, cx
-	  @@:	ret
+	  @@:	
+	    ret
 		
 	.instr_0xc3: ; jmp word
 		add dword [cpu.clk_counter],10
@@ -1555,7 +1592,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	  @@:	add esp, 2
+	  @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xc5: ; push b
@@ -1617,7 +1655,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xcd: ; call word
@@ -1671,13 +1710,12 @@ process_instruction:
 	.instr_0xd3: ; out byte
 		add dword [cpu.clk_counter],10
 		get_byte
-		movzx eax, al
-		imul eax, 4
-		push ebx
-		mov byte [cpu.wr], 1
-		call dword [eax+cpu.IOPorts]
+		movzx rax, al
+		imul rax, 8
+		mov  rdi, rbx
+		mov  byte [cpu.wr], 1
+		call qword [rax+cpu.IOPorts]
 		mov  byte [cpu.wr],0
-		add esp, 4
 		ret
 		
 	.instr_0xd4: ; cnc word
@@ -1691,8 +1729,9 @@ process_instruction:
 		push_cx
 		pop  pc
 		ret
-		add esp, 2
-	 @@:	ret
+	 @@:
+		add rsp, 2
+	    ret
 		
 	.instr_0xd5: ; push d
 		add dword [cpu.clk_counter],11
@@ -1739,11 +1778,10 @@ process_instruction:
 	.instr_0xdb: ; in byte
 		add dword [cpu.clk_counter],10
 		get_byte
-		movzx eax, al
-		imul eax, 4
-		push ebx
-		call dword [eax+cpu.IOPorts]
-		add esp, 4
+		movzx rax, al
+		imul rax, 8
+		mov  rdi, rbx
+		call qword [rax+cpu.IOPorts]
 		ret
 		
 	.instr_0xdc: ; cc word
@@ -1757,7 +1795,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:
+	 	add rsp, 2
 		ret
 		
 	.instr_0xdd:
@@ -1786,7 +1825,8 @@ process_instruction:
 		add dword [cpu.clk_counter],11
 		pop_cx
 		mov pc, cx
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xe1: ; pop h
 		add dword [cpu.clk_counter],10
@@ -1800,7 +1840,8 @@ process_instruction:
 		lflags
 		jpe @f
 		mov pc, ax
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xe3: ; xthl
 		add dword [cpu.clk_counter],18
@@ -1820,7 +1861,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xe5: ; push h
@@ -1865,7 +1907,8 @@ process_instruction:
 		lflags
 		jpo @f
 		mov pc, cx
-	 @@:	ret
+	 @@:
+	    ret
 		
 	.instr_0xeb: ; xchg
 		add dword [cpu.clk_counter],4
@@ -1885,7 +1928,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	 	add rsp, 2
 		ret
 		
 	.instr_0xed:
@@ -1947,7 +1991,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	 	add rsp, 2
 		ret
 		
 	.instr_0xf5: ; push psw
@@ -2010,7 +2055,8 @@ process_instruction:
 		push_cx
 		pop pc
 		ret
-	 @@:	add esp, 2
+	 @@:	
+	    add rsp, 2
 		ret
 		
 	.instr_0xfd:
