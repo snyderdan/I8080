@@ -5,11 +5,11 @@
 #  include <stdint.h>
 
 typedef struct I8080CPU {
-	int   counter;
-	char *ram;
+	uint64_t   counter;
+	uint8_t *ram;
 	void *mmu, *ioports[256];
-	short pc, sp;
-	char a, c, b, e, d, l, h, f,
+	uint16_t pc, sp;
+	uint8_t a, c, b, e, d, l, h, f,
 	halt, wr, hold,
 	int_enabled, int_request, int_instruction;
 } __attribute__((packed)) I8080;
@@ -45,13 +45,13 @@ extern void __cdecl freeCPU(I8080 *cpu);
  *    memory request. 
  * 
  */
-extern void __cdecl setMMU(I8080 *, int64_t (*handle)(I8080 *, int)); // set MMU handler. Receives a logical address and return a physical address
+extern void __cdecl setMMU(I8080 *, void *(*handle)(I8080 *, uint16_t)); // set MMU handler. Receives a logical address and return a physical address
 extern void __cdecl clearMMU(I8080 *);
 extern void __cdecl *getMemory(I8080 *cpu);            // return address of RAM
 extern void __cdecl setMemory(I8080 *cpu, void *memory); // Set address of RAM 
 
 extern void __cdecl stepCPU(I8080 *cpu);
-extern int  __cdecl executeCycles(I8080 *cpu, int cycleCount);
+extern uint64_t  __cdecl executeCycles(I8080 *cpu, uint64_t cycleCount);
 
 /** 
  * Set handle for IO port (portno)
@@ -65,9 +65,9 @@ extern int  __cdecl executeCycles(I8080 *cpu, int cycleCount);
  * The handle should be a void function that takes a pointer to an I8080 as an argument
  *
  */
-extern int __cdecl setIOPort(I8080 *cpu, int portno, void (*handle)(I8080 *instance)); 
+extern void __cdecl setIOPort(I8080 *cpu, uint8_t portno, void (*handle)(I8080 *instance)); 
 
-extern int __cdecl getIOState(I8080 *); // returns 1 if in output mode or 0 if in input mode
+extern uint8_t __cdecl getIOState(I8080 *); // returns 1 if in output mode or 0 if in input mode
 #  define INPUT      0
 #  define OUTPUT     1
 // Numerous synonyms
@@ -75,9 +75,9 @@ extern int __cdecl getIOState(I8080 *); // returns 1 if in output mode or 0 if i
 #  define isInput    !writeWire
 #  define isOutput   writeWire
 
-extern int __cdecl getAccumulator(I8080 *cpu); // returns -1 if not WriteWire() else the current
+extern uint8_t __cdecl getAccumulator(I8080 *cpu); // returns -1 if not WriteWire() else the current
 						// value in register A
-extern int __cdecl setAccumulator(I8080 *cpu, int); // returns -1 if WriteWire() else the value
+extern uint8_t __cdecl setAccumulator(I8080 *cpu, uint8_t acc); // returns -1 if WriteWire() else the value
 						// that register A was set to (only the lowest byte)
 
 #  define INVALID_ACCUMULATOR -1
@@ -87,15 +87,15 @@ extern int __cdecl setAccumulator(I8080 *cpu, int); // returns -1 if WriteWire()
 
 // Physical I/O pins
 extern void __cdecl resetCPU(I8080 *cpu);    // clears PC and sets IR bit to False; all other registers remain the same
-extern void __cdecl requestInterrupt(I8080 *cpu, char instruction);  // pass a one byte instruction
-extern int __cdecl interruptEnabled(I8080 *cpu);    // Returns 1 if IR bit is True else False
+extern void __cdecl requestInterrupt(I8080 *cpu, uint8_t instruction);  // pass a one byte instruction
+extern uint8_t __cdecl interruptEnabled(I8080 *cpu);    // Returns 1 if IR bit is True else False
 /**
  * setHold() is used to place the CPU in the hold state, essentially halting execution.
  * The getHoldState() function returns whether or not the CPU is in a hold state, via
  * the setHold() method. If an interrupt is received in either the HOLD state or when interrupts
  * are disabled via instructions, then the interrupt will not be acknowledged.
  */
-extern int __cdecl getHoldState(I8080 *cpu);    // returns 1 if HLT or hold pin == 1 else 0
-extern void __cdecl setHold(I8080 *cpu, int value); // Sets hold pin to value (0 or 1)
+extern uint8_t __cdecl getHoldState(I8080 *cpu);    // returns 1 if HLT or hold pin == 1 else 0
+extern void __cdecl setHold(I8080 *cpu, uint8_t value); // Sets hold pin to value (0 or 1)
 
 #endif

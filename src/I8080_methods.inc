@@ -74,7 +74,7 @@ executeCycles:
 	mov  rbx, rdi      		  	  ; load CPU instance into rbx
 	mov  dword [cpu.clk_counter],0	  ; clear clock cycles
 cycle_loop:
-	cmp  [cpu.clk_counter], esi	 ; compare to the number of cycles to execute
+	cmp  [cpu.clk_counter], rsi	 ; compare to the number of cycles to execute
 	jge  cycle_end			     ; if greater than or equal, then stop
     push rsi                    ; store counter
     mov  rdi, rbx               ; pass CPU instance
@@ -123,9 +123,9 @@ clearMMU:       ; simply sets the memory manager back to default
 setIOPort:          ; Assign an I/O function handle to an I/O port
     push rbx
     xor  rax, rax
-    mov  eax, esi           ; move port number to eax
-    mov  rbx, rdi     		; Move cpu instance into rbx
-    imul rax, 8 		  ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
+    movzx rax, sil         ; move 8-bit port number to rax
+    mov  rbx, rdi     	   ; Move cpu instance into rbx
+    imul rax, 8 		   ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
     mov  [rax+cpu.IOPorts], rdx		  ; store pointer to function
     pop  rbx
     mov  rax, 0
@@ -137,9 +137,9 @@ setIOPort:          ; Assign an I/O function handle to an I/O port
 freeIOPort:
     push rbx
     xor  rax, rax
-    mov  eax, esi           ; move port number to eax
+    movzx eax, sil          ; move port number to eax
     mov  rbx, rdi           ; Move cpu instance into rbx
-    imul rax, 8           ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
+    imul rax, 8             ; Calculate offset (each port in jump table is a 8-byte pointer, so we multiply our port number by 8 to get the offset
     mov  rdx, null_handle
     mov  [rax+cpu.IOPorts], rdx
     pop  rbx
@@ -150,8 +150,7 @@ freeIOPort:
 requestInterrupt:
     push rbx
     mov  rbx, rdi
-    mov  al, byte [rsp+16]
-    mov  [cpu.int_instruc], al
+    mov  [cpu.int_instruc], sil
     mov  [cpu.int_request], byte 1
     pop  rbx
     ret
@@ -210,7 +209,7 @@ setHold:
 getAccumulator:
     push rbx
     mov  rbx, rdi
-    movzx rax, a
+    mov  al, a
     cmp  byte [cpu.wr], 1
     jz   @f
     mov  rax, -1
@@ -223,11 +222,10 @@ getAccumulator:
 setAccumulator:
 	push rbx
     mov  rbx, rdi
-    mov  ax, si
-    mov  a, al
-    movzx rax, si
+    mov  a, sil
+    mov  al, sil
     cmp  byte [cpu.wr], 1
-    jz   @f
+    jnz  @f
     mov  rax, -1
 @@: pop  rbx
     ret

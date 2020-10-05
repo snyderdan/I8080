@@ -8,7 +8,7 @@
 
 struct I8080CPU    ; structure for I8080 object
     ; start with aligned portions
-    clk_counter dd  ?	; clocks passed
+    clk_counter dq  ?	; clocks passed
     ram_address dq  ?	; base RAM address
     mem_mngr	dq  ?	; pointer to MMU
     IOPorts	dq  256 dup ?	 ; Internal I/O jump table
