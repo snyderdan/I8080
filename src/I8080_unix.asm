@@ -1,6 +1,6 @@
 format ELF64
 
-include 'struct.inc'
+include 'macro/struct.inc'
 include 'globals.inc'
 include 'proc_instruction.inc'
 

@@ -1,7 +1,7 @@
 format PE64 DLL
 
 include 'win64a.inc'
-include 'struct.inc'
+include 'macro/struct.inc'
 include 'globals.inc'
 include 'proc_instruction.inc'
 
